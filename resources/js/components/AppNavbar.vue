@@ -7,12 +7,9 @@
     >
         <div class="mx-auto px-6">
             <div class="flex h-14 items-center justify-between">
-                <Link
-                    href="/"
-                    class="text-lg font-semibold tracking-tight transition"
-                    :class="isDark ? 'text-white hover:text-emerald-400' : 'text-slate-900 hover:text-emerald-600'"
-                >
-                    SecOpsForge
+                <Link href="/" class="flex items-center gap-2.5 transition hover:opacity-80">
+                    <LogoIcon sizeClass="h-7 w-7" />
+                    <span class="text-lg font-semibold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">SecOpsForge</span>
                 </Link>
                 <div class="flex items-center space-x-1">
                     <Link
@@ -34,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import LogoIcon from '@/components/LogoIcon.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Link, usePage } from '@inertiajs/vue3';
