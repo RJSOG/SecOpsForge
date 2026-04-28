@@ -1,13 +1,12 @@
 <template>
-    <div>
-        <Navbar />
-        <div class="mx-auto max-w-3xl p-6">
-            <h1 class="mb-4 text-3xl font-bold">Blue Team</h1>
-            <p class="text-gray-700">Contenu Blue Team ici.</p>
-        </div>
-    </div>
+    <NotesLayout team="blueteam" teamLabel="Blue Team" :tree="tree" :note="note" accentColor="blue" />
 </template>
 
 <script setup lang="ts">
-import Navbar from '@/components/AppNavbar.vue';
+import NotesLayout from '@/components/NotesLayout.vue';
+
+defineProps<{
+    tree: any[];
+    note: { title: string; content: string; path: string } | null;
+}>();
 </script>

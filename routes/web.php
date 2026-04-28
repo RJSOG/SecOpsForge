@@ -1,19 +1,19 @@
 <?php
 
-use App\Http\Controllers\FileController;
+use App\Http\Controllers\NotesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::prefix('api')->name('api.')->group(function () {
-    require __DIR__ . '/api.php';
-});
-
 Route::get('/', fn() => Inertia::render('HomePage'))->name('home');
 
-Route::get('/redteam', fn() => Inertia::render('RedTeamPage'))->name('redteam');
+Route::get('/redteam/{path?}', [NotesController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('team', 'redteam')
+    ->name('redteam');
 
-Route::get('/blueteam', fn() => Inertia::render('BlueTeamPage'))->name('blueteam');
+Route::get('/blueteam/{path?}', [NotesController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('team', 'blueteam')
+    ->name('blueteam');
 
 Route::get('/about', fn() => Inertia::render('AboutPage'))->name('about');
-
-Route::get('/page/md/{path}', [FileController::class, 'buildFilePage']);
