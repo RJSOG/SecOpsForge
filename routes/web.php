@@ -6,14 +6,12 @@ use Inertia\Inertia;
 
 Route::get('/', fn() => Inertia::render('HomePage'))->name('home');
 
-Route::get('/redteam/{path?}', [NotesController::class, 'show'])
+Route::get('/redteam/{path?}', [NotesController::class, 'redteam'])
     ->where('path', '.*')
-    ->defaults('team', 'redteam')
     ->name('redteam');
 
-Route::get('/blueteam/{path?}', [NotesController::class, 'show'])
+Route::get('/blueteam/{path?}', [NotesController::class, 'blueteam'])
     ->where('path', '.*')
-    ->defaults('team', 'blueteam')
     ->name('blueteam');
 
 Route::get('/about', fn() => Inertia::render('AboutPage'))->name('about');

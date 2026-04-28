@@ -1,9 +1,11 @@
 <template>
-    <NotesLayout team="blueteam" teamLabel="Blue Team" :tree="tree" :note="note" accentColor="blue" />
+    <NotesLayout team="redteam" teamLabel="Red Team" :tree="tree" :note="note" accentColor="red" />
 </template>
 
 <script setup lang="ts">
 import NotesLayout from '@/components/NotesLayout.vue';
+
+defineOptions({ layout: false });
 
 defineProps<{
     tree: any[];
