@@ -13,11 +13,7 @@
 /.zed
 /auth.json
 /bootstrap/ssr
-/bootstrap/ssr
-/bootstrap/ssr
-/bootstrap/ssr
-/bootstrap/ssr
-/bootstrap/ssr
+/.vite
 /node_modules
 /public/build
 /public/hot
