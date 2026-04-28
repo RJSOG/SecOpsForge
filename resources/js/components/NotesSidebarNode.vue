@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useTheme } from '@/composables/useTheme';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -17,6 +18,7 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
+const { isDark } = useTheme();
 const open = ref(false);
 
 const toggle = () => (open.value = !open.value);
@@ -24,22 +26,32 @@ const toggle = () => (open.value = !open.value);
 const fileUrl = computed(() => `/${props.team}/${props.node.path}`);
 
 const isActive = computed(() => {
-    const url = decodeURIComponent(page.url);
-    return url === fileUrl.value;
+    return decodeURIComponent(page.url) === fileUrl.value;
 });
 
-const accentStyles = computed(() => {
-    if (props.accentColor === 'red') {
-        return {
-            active: 'bg-red-500/10 text-red-400',
-            hover: 'hover:text-red-400 hover:bg-slate-800/50',
-        };
+const fileClasses = computed(() => {
+    const color = props.accentColor;
+    if (isActive.value) {
+        return color === 'red' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500';
     }
-    return {
-        active: 'bg-blue-500/10 text-blue-400',
-        hover: 'hover:text-blue-400 hover:bg-slate-800/50',
-    };
+    if (isDark.value) {
+        return color === 'red'
+            ? 'text-slate-500 hover:text-red-400 hover:bg-slate-800/50'
+            : 'text-slate-500 hover:text-blue-400 hover:bg-slate-800/50';
+    }
+    return color === 'red'
+        ? 'text-slate-500 hover:text-red-600 hover:bg-slate-100'
+        : 'text-slate-500 hover:text-blue-600 hover:bg-slate-100';
 });
+
+const folderClasses = computed(() => {
+    if (isDark.value) {
+        return 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200';
+    }
+    return 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
+});
+
+const borderClass = computed(() => isDark.value ? 'border-slate-800' : 'border-slate-200');
 </script>
 
 <template>
@@ -47,12 +59,14 @@ const accentStyles = computed(() => {
         <!-- Folder -->
         <template v-if="node.type === 'folder'">
             <button
-                class="flex w-full items-center rounded-md px-2 py-1.5 text-sm text-slate-400 transition-colors duration-150 hover:bg-slate-800/50 hover:text-slate-200"
+                class="flex w-full items-center rounded-md px-2 py-1.5 text-sm transition-colors duration-150"
+                :class="folderClasses"
                 @click="toggle"
             >
                 <svg
                     :class="[
-                        'mr-2 h-3 w-3 flex-shrink-0 text-slate-600 transition-transform duration-200',
+                        'mr-2 h-3 w-3 flex-shrink-0 transition-transform duration-200',
+                        isDark ? 'text-slate-600' : 'text-slate-400',
                         open ? 'rotate-90' : '',
                     ]"
                     viewBox="0 0 20 20"
@@ -65,7 +79,8 @@ const accentStyles = computed(() => {
 
             <ul
                 v-if="open && node.children"
-                class="ml-3 mt-0.5 space-y-0.5 border-l border-slate-800 pl-3"
+                class="ml-3 mt-0.5 space-y-0.5 border-l pl-3"
+                :class="borderClass"
             >
                 <NotesSidebarNode
                     v-for="child in node.children"
@@ -83,7 +98,7 @@ const accentStyles = computed(() => {
             <Link
                 :href="fileUrl"
                 class="block rounded-md px-2 py-1.5 text-sm transition-colors duration-150"
-                :class="isActive ? accentStyles.active : `text-slate-500 ${accentStyles.hover}`"
+                :class="fileClasses"
                 preserve-scroll
             >
                 {{ node.name }}
