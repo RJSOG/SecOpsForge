@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppNavbar from '@/components/AppNavbar.vue';
 import NotesSidebar from '@/components/NotesSidebar.vue';
+import { useTheme } from '@/composables/useTheme';
 
 interface NoteNode {
     name: string;
@@ -17,16 +18,16 @@ const props = defineProps<{
     accentColor: 'red' | 'blue';
 }>();
 
+const { isDark } = useTheme();
+
 const accentClasses = {
     red: {
-        badge: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
-        heading: 'text-red-400',
-        prose: 'prose-red',
+        badge: 'bg-red-500/10 text-red-500 ring-1 ring-red-500/20',
+        heading: 'text-red-500',
     },
     blue: {
-        badge: 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20',
-        heading: 'text-blue-400',
-        prose: 'prose-blue',
+        badge: 'bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/20',
+        heading: 'text-blue-500',
     },
 };
 
@@ -34,7 +35,7 @@ const accent = accentClasses[props.accentColor];
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-900 text-white">
+    <div class="min-h-screen transition-colors duration-200" :class="isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'">
         <AppNavbar />
 
         <div class="flex pt-14">
@@ -47,11 +48,18 @@ const accent = accentClasses[props.accentColor];
                         <span :class="['inline-block rounded-full px-3 py-1 text-xs font-medium', accent.badge]">
                             {{ teamLabel }}
                         </span>
-                        <h1 class="mt-3 text-2xl font-bold tracking-tight text-white">{{ note.title }}</h1>
+                        <h1 class="mt-3 text-2xl font-bold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
+                            {{ note.title }}
+                        </h1>
                     </div>
                     <article
+                        v-if="isDark"
                         class="prose prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-slate-100 prose-p:text-slate-300 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-200 prose-code:rounded prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:text-slate-300 prose-pre:border prose-pre:border-slate-800 prose-pre:bg-slate-950 prose-th:text-slate-300 prose-td:text-slate-400"
-                        :class="accent.prose"
+                        v-html="note.content"
+                    />
+                    <article
+                        v-else
+                        class="prose max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-800 prose-code:rounded prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:text-slate-700 prose-pre:border prose-pre:border-slate-200 prose-pre:bg-slate-50 prose-th:text-slate-700 prose-td:text-slate-600"
                         v-html="note.content"
                     />
                 </div>
@@ -60,7 +68,7 @@ const accent = accentClasses[props.accentColor];
                 <div v-else class="flex h-[70vh] items-center justify-center">
                     <div class="text-center">
                         <h2 :class="['mb-2 text-2xl font-bold tracking-tight', accent.heading]">{{ teamLabel }}</h2>
-                        <p class="text-slate-500">
+                        <p :class="isDark ? 'text-slate-500' : 'text-slate-400'">
                             Sélectionnez une note dans la sidebar.
                         </p>
                     </div>

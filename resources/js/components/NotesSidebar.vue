@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import NotesSidebarNode from '@/components/NotesSidebarNode.vue';
+import { useTheme } from '@/composables/useTheme';
 
 interface NoteNode {
     name: string;
@@ -13,14 +14,20 @@ defineProps<{
     team: string;
     accentColor: 'red' | 'blue';
 }>();
+
+const { isDark } = useTheme();
 </script>
 
 <template>
     <aside
-        class="sticky top-14 h-[calc(100vh-3.5rem)] w-64 flex-shrink-0 overflow-y-auto border-r border-slate-800 bg-slate-950"
+        class="sticky top-14 h-[calc(100vh-3.5rem)] w-64 flex-shrink-0 overflow-y-auto border-r transition-colors duration-200"
+        :class="isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50'"
     >
         <div class="p-4">
-            <h3 class="mb-4 text-[11px] font-semibold uppercase tracking-widest text-slate-600">
+            <h3
+                class="mb-4 text-[11px] font-semibold uppercase tracking-widest"
+                :class="isDark ? 'text-slate-600' : 'text-slate-400'"
+            >
                 Notes
             </h3>
 
@@ -35,7 +42,7 @@ defineProps<{
                 />
             </ul>
 
-            <p v-else class="text-sm italic text-slate-600">
+            <p v-else class="text-sm italic" :class="isDark ? 'text-slate-600' : 'text-slate-400'">
                 Aucune note pour le moment.
             </p>
         </div>
