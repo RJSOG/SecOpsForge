@@ -45,7 +45,7 @@ const links = [
     { name: 'Home', href: '/' },
     { name: 'Red Team', href: '/redteam' },
     { name: 'Blue Team', href: '/blueteam' },
-    { name: 'About', href: '/about' },
+    { name: 'Whoami', href: '/whoami' },
 ];
 
 function getLinkClasses(href: string) {
