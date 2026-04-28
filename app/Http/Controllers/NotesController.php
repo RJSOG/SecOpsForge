@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -24,9 +25,19 @@ class NotesController extends Controller
         return $this->renderNotes('blueteam', 'BlueTeamPage', $path);
     }
 
+    private function getStoragePath(string $team): string
+    {
+        // Try the 'private' disk first, fall back to direct storage path
+        try {
+            return Storage::disk('private')->path('md/' . $team);
+        } catch (\Exception $e) {
+            return storage_path('app/private/md/' . $team);
+        }
+    }
+
     private function renderNotes(string $team, string $page, ?string $path): Response
     {
-        $storagePath = Storage::disk('private')->path('md/' . $team);
+        $storagePath = $this->getStoragePath($team);
 
         // Ensure directory exists
         if (!is_dir($storagePath)) {
@@ -35,6 +46,8 @@ class NotesController extends Controller
 
         // Build file tree
         $tree = $this->buildTree($storagePath);
+
+        Log::debug("NotesController: team={$team}, storagePath={$storagePath}, path={$path}, treeCount=" . count($tree));
 
         // Render markdown if a path is given
         $note = null;
@@ -52,7 +65,18 @@ class NotesController extends Controller
 
     private function renderMarkdown(string $storagePath, string $path): ?array
     {
+        // Try with .md appended first, then as-is (in case path already has .md)
         $filePath = $storagePath . '/' . $path . '.md';
+
+        if (!file_exists($filePath)) {
+            $filePath = $storagePath . '/' . $path;
+        }
+
+        Log::debug("NotesController: trying to load file at {$filePath}, exists=" . (file_exists($filePath) ? 'yes' : 'no'));
+
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
 
         // Security: prevent directory traversal
         $realFile = realpath($filePath);
@@ -62,15 +86,11 @@ class NotesController extends Controller
             abort(404);
         }
 
-        if (!file_exists($filePath)) {
-            abort(404);
-        }
-
         $raw = file_get_contents($filePath);
         $content = $this->getConverter()->convert($raw)->getContent();
 
         return [
-            'title' => pathinfo($filePath, PATHINFO_FILENAME),
+            'title' => Str::headline(pathinfo($filePath, PATHINFO_FILENAME)),
             'content' => $content,
             'path' => $path,
         ];
