@@ -31,13 +31,13 @@ const isActive = computed(() => {
 const accentStyles = computed(() => {
     if (props.accentColor === 'red') {
         return {
-            active: 'bg-red-500/20 text-red-400',
-            hover: 'hover:text-red-400 hover:bg-slate-800',
+            active: 'bg-red-500/10 text-red-400',
+            hover: 'hover:text-red-400 hover:bg-slate-800/50',
         };
     }
     return {
-        active: 'bg-blue-500/20 text-blue-400',
-        hover: 'hover:text-blue-400 hover:bg-slate-800',
+        active: 'bg-blue-500/10 text-blue-400',
+        hover: 'hover:text-blue-400 hover:bg-slate-800/50',
     };
 });
 </script>
@@ -47,12 +47,12 @@ const accentStyles = computed(() => {
         <!-- Folder -->
         <template v-if="node.type === 'folder'">
             <button
-                class="flex w-full items-center rounded px-2 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
+                class="flex w-full items-center rounded-md px-2 py-1.5 text-sm text-slate-400 transition-colors duration-150 hover:bg-slate-800/50 hover:text-slate-200"
                 @click="toggle"
             >
                 <svg
                     :class="[
-                        'mr-2 h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200',
+                        'mr-2 h-3 w-3 flex-shrink-0 text-slate-600 transition-transform duration-200',
                         open ? 'rotate-90' : '',
                     ]"
                     viewBox="0 0 20 20"
@@ -60,12 +60,12 @@ const accentStyles = computed(() => {
                 >
                     <path fill-rule="evenodd" d="M6 4l8 6-8 6V4z" clip-rule="evenodd" />
                 </svg>
-                {{ node.name }}
+                <span class="font-medium">{{ node.name }}</span>
             </button>
 
             <ul
                 v-if="open && node.children"
-                class="ml-3 mt-1 space-y-1 border-l border-slate-700 pl-3"
+                class="ml-3 mt-0.5 space-y-0.5 border-l border-slate-800 pl-3"
             >
                 <NotesSidebarNode
                     v-for="child in node.children"
@@ -82,8 +82,8 @@ const accentStyles = computed(() => {
         <template v-else>
             <Link
                 :href="fileUrl"
-                class="block rounded px-2 py-1.5 text-sm transition"
-                :class="isActive ? accentStyles.active : `text-slate-400 ${accentStyles.hover}`"
+                class="block rounded-md px-2 py-1.5 text-sm transition-colors duration-150"
+                :class="isActive ? accentStyles.active : `text-slate-500 ${accentStyles.hover}`"
                 preserve-scroll
             >
                 {{ node.name }}
