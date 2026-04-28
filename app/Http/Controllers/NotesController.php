@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\TaskList\TaskListExtension;
-use League\CommonMark\Environment\Environment;
 use League\CommonMark\MarkdownConverter;
 
 class NotesController extends Controller
@@ -20,7 +20,7 @@ class NotesController extends Controller
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
         ]);
-        $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension());
+        $environment->addExtension(new CommonMarkCoreExtension());
         $environment->addExtension(new TableExtension());
         $environment->addExtension(new TaskListExtension());
 
@@ -29,6 +29,7 @@ class NotesController extends Controller
 
     /**
      * Build a file tree from the storage directory.
+     * Returns paths WITHOUT the .md extension (cleaner URLs).
      */
     private function buildTree(string $basePath, string $relativeTo = ''): array
     {
@@ -59,15 +60,16 @@ class NotesController extends Controller
                     ];
                 }
             } elseif (pathinfo($entry, PATHINFO_EXTENSION) === 'md') {
+                // Strip .md from path for clean URLs
+                $cleanRelative = preg_replace('/\.md$/', '', $relative);
                 $result[] = [
                     'name' => pathinfo($entry, PATHINFO_FILENAME),
                     'type' => 'file',
-                    'path' => $relative,
+                    'path' => $cleanRelative,
                 ];
             }
         }
 
-        // Sort: folders first, then files, alphabetical
         usort($result, function ($a, $b) {
             if ($a['type'] !== $b['type']) {
                 return $a['type'] === 'folder' ? -1 : 1;
@@ -91,6 +93,11 @@ class NotesController extends Controller
 
         $storagePath = Storage::disk('private')->path('md/' . $team);
 
+        // Ensure directory exists
+        if (!is_dir($storagePath)) {
+            @mkdir($storagePath, 0755, true);
+        }
+
         // Build file tree
         $tree = $this->buildTree($storagePath);
 
@@ -99,16 +106,15 @@ class NotesController extends Controller
         $title = null;
 
         if ($path) {
-            $filePath = $storagePath . '/' . $path;
+            // Always append .md since we stripped it from URLs
+            $filePath = $storagePath . '/' . $path . '.md';
 
             // Security: prevent directory traversal
-            if (!Str::startsWith(realpath($filePath) ?: '', realpath($storagePath))) {
-                abort(404);
-            }
+            $realFile = realpath($filePath);
+            $realBase = realpath($storagePath);
 
-            if (!file_exists($filePath)) {
-                // Try appending .md
-                $filePath .= '.md';
+            if (!$realFile || !$realBase || !Str::startsWith($realFile, $realBase)) {
+                abort(404);
             }
 
             if (file_exists($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'md') {
