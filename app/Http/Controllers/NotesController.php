@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -14,6 +15,87 @@ use League\CommonMark\MarkdownConverter;
 
 class NotesController extends Controller
 {
+    public function redteam(?string $path = null): Response
+    {
+        return $this->renderNotes('redteam', 'RedTeamPage', $path);
+    }
+
+    public function blueteam(?string $path = null): Response
+    {
+        return $this->renderNotes('blueteam', 'BlueTeamPage', $path);
+    }
+
+    private function getStoragePath(string $team): string
+    {
+        // Try the 'private' disk first, fall back to direct storage path
+        try {
+            return Storage::disk('private')->path('md/' . $team);
+        } catch (\Exception $e) {
+            return storage_path('app/private/md/' . $team);
+        }
+    }
+
+    private function renderNotes(string $team, string $page, ?string $path): Response
+    {
+        $storagePath = $this->getStoragePath($team);
+
+        // Ensure directory exists
+        if (!is_dir($storagePath)) {
+            @mkdir($storagePath, 0755, true);
+        }
+
+        // Build file tree
+        $tree = $this->buildTree($storagePath);
+
+        Log::debug("NotesController: team={$team}, storagePath={$storagePath}, path={$path}, treeCount=" . count($tree));
+
+        // Render markdown if a path is given
+        $note = null;
+
+        if ($path) {
+            $note = $this->renderMarkdown($storagePath, $path);
+        }
+
+        return Inertia::render($page, [
+            'tree' => $tree,
+            'note' => $note,
+            'team' => $team,
+        ]);
+    }
+
+    private function renderMarkdown(string $storagePath, string $path): ?array
+    {
+        // Try with .md appended first, then as-is (in case path already has .md)
+        $filePath = $storagePath . '/' . $path . '.md';
+
+        if (!file_exists($filePath)) {
+            $filePath = $storagePath . '/' . $path;
+        }
+
+        Log::debug("NotesController: trying to load file at {$filePath}, exists=" . (file_exists($filePath) ? 'yes' : 'no'));
+
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+
+        // Security: prevent directory traversal
+        $realFile = realpath($filePath);
+        $realBase = realpath($storagePath);
+
+        if (!$realFile || !$realBase || !Str::startsWith($realFile, $realBase)) {
+            abort(404);
+        }
+
+        $raw = file_get_contents($filePath);
+        $content = $this->getConverter()->convert($raw)->getContent();
+
+        return [
+            'title' => Str::headline(pathinfo($filePath, PATHINFO_FILENAME)),
+            'content' => $content,
+            'path' => $path,
+        ];
+    }
+
     private function getConverter(): MarkdownConverter
     {
         $environment = new Environment([
@@ -27,10 +109,6 @@ class NotesController extends Controller
         return new MarkdownConverter($environment);
     }
 
-    /**
-     * Build a file tree from the storage directory.
-     * Returns paths WITHOUT the .md extension (cleaner URLs).
-     */
     private function buildTree(string $basePath, string $relativeTo = ''): array
     {
         $result = [];
@@ -60,7 +138,6 @@ class NotesController extends Controller
                     ];
                 }
             } elseif (pathinfo($entry, PATHINFO_EXTENSION) === 'md') {
-                // Strip .md from path for clean URLs
                 $cleanRelative = preg_replace('/\.md$/', '', $relative);
                 $result[] = [
                     'name' => pathinfo($entry, PATHINFO_FILENAME),
@@ -78,64 +155,5 @@ class NotesController extends Controller
         });
 
         return $result;
-    }
-
-    /**
-     * Show the Red Team or Blue Team notes index / note page.
-     */
-    public function show(string $team, ?string $path = null): Response
-    {
-        $team = strtolower($team);
-
-        if (!in_array($team, ['redteam', 'blueteam'])) {
-            abort(404);
-        }
-
-        $storagePath = Storage::disk('private')->path('md/' . $team);
-
-        // Ensure directory exists
-        if (!is_dir($storagePath)) {
-            @mkdir($storagePath, 0755, true);
-        }
-
-        // Build file tree
-        $tree = $this->buildTree($storagePath);
-
-        // Render markdown if a path is given
-        $content = null;
-        $title = null;
-
-        if ($path) {
-            // Always append .md since we stripped it from URLs
-            $filePath = $storagePath . '/' . $path . '.md';
-
-            // Security: prevent directory traversal
-            $realFile = realpath($filePath);
-            $realBase = realpath($storagePath);
-
-            if (!$realFile || !$realBase || !Str::startsWith($realFile, $realBase)) {
-                abort(404);
-            }
-
-            if (file_exists($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'md') {
-                $raw = file_get_contents($filePath);
-                $content = $this->getConverter()->convert($raw)->getContent();
-                $title = pathinfo($filePath, PATHINFO_FILENAME);
-            } else {
-                abort(404);
-            }
-        }
-
-        $pageName = $team === 'redteam' ? 'RedTeamPage' : 'BlueTeamPage';
-
-        return Inertia::render($pageName, [
-            'tree' => $tree,
-            'note' => $content ? [
-                'title' => $title,
-                'content' => $content,
-                'path' => $path,
-            ] : null,
-            'team' => $team,
-        ]);
     }
 }
