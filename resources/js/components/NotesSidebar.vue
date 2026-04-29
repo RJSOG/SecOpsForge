@@ -12,7 +12,7 @@ interface NoteNode {
 defineProps<{
     tree: NoteNode[];
     team: string;
-    accentColor: 'red' | 'blue';
+    accentColor: 'red' | 'blue' | 'amber';
 }>();
 
 const { isDark } = useTheme();
