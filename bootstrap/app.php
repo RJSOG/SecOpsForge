@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\AutoLoginFrontend;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -25,14 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 HandleInertiaRequests::class,
                 AddLinkHeadersForPreloadedAssets::class,
             ],
-            prepend: [
-                AutoLoginFrontend::class,
-            ],
         );
 
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,
-            AutoLoginFrontend::class,
         ]);
 
         $middleware->alias([
