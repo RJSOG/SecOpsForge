@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Highlight.js - dark theme for dark mode, light for light mode */
+@import 'highlight.js/styles/github-dark-dimmed.css' layer(hljs);
+
+/* Override for light mode */
+:root:not(.dark) pre code.hljs {
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+:root:not(.dark) .hljs-keyword,
+:root:not(.dark) .hljs-selector-tag {
+    color: #8250df;
+}
+
+:root:not(.dark) .hljs-string,
+:root:not(.dark) .hljs-addition {
+    color: #0a3069;
+}
+
+:root:not(.dark) .hljs-comment {
+    color: #6e7781;
+}
+
+:root:not(.dark) .hljs-built_in,
+:root:not(.dark) .hljs-variable {
+    color: #953800;
+}
+
+:root:not(.dark) .hljs-number {
+    color: #0550ae;
+}
+
+:root:not(.dark) .hljs-title,
+:root:not(.dark) .hljs-function {
+    color: #8250df;
+}
