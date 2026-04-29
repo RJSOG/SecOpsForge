@@ -119,10 +119,11 @@
 
 <script setup lang="ts">
 import AppNavbar from '@/components/AppNavbar.vue';
+import { useHighlight } from '@/composables/useHighlight';
 import { useTheme } from '@/composables/useTheme';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 defineOptions({ layout: false });
 
@@ -135,6 +136,7 @@ const props = defineProps<{
 }>();
 
 const { isDark } = useTheme();
+const { highlightAll } = useHighlight();
 
 const teamLabels: Record<string, string> = {
     redteam: 'Red Team',
@@ -164,6 +166,7 @@ async function updatePreview() {
     try {
         const { data } = await axios.post('/api/editor/preview', { content: content.value });
         previewHtml.value = data.html;
+        nextTick(() => highlightAll());
     } catch {
         // silent
     }

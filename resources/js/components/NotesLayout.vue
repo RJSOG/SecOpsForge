@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import AppNavbar from '@/components/AppNavbar.vue';
 import NotesSidebar from '@/components/NotesSidebar.vue';
+import { useHighlight } from '@/composables/useHighlight';
 import { useTheme } from '@/composables/useTheme';
 import { Link, usePage } from '@inertiajs/vue3';
+import { nextTick, watch } from 'vue';
 
 interface NoteNode {
     name: string;
@@ -22,6 +24,15 @@ const props = defineProps<{
 const { isDark } = useTheme();
 const page = usePage();
 const isAuthenticated = !!page.props.auth?.user;
+const { highlightAll } = useHighlight();
+
+watch(
+    () => props.note?.path,
+    () => {
+        nextTick(() => highlightAll());
+    },
+    { immediate: true },
+);
 
 const accentClasses = {
     red: {
