@@ -13,7 +13,7 @@ interface NoteNode {
 const props = defineProps<{
     node: NoteNode;
     team: string;
-    accentColor: 'red' | 'blue';
+    accentColor: 'red' | 'blue' | 'amber';
     depth: number;
 }>();
 
@@ -29,19 +29,17 @@ const isActive = computed(() => {
     return decodeURIComponent(page.url) === fileUrl.value;
 });
 
+const colorMap = {
+    red: { active: 'bg-red-500/10 text-red-500', darkHover: 'hover:text-red-400', lightHover: 'hover:text-red-600' },
+    blue: { active: 'bg-blue-500/10 text-blue-500', darkHover: 'hover:text-blue-400', lightHover: 'hover:text-blue-600' },
+    amber: { active: 'bg-amber-500/10 text-amber-500', darkHover: 'hover:text-amber-400', lightHover: 'hover:text-amber-600' },
+};
+
 const fileClasses = computed(() => {
-    const color = props.accentColor;
-    if (isActive.value) {
-        return color === 'red' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500';
-    }
-    if (isDark.value) {
-        return color === 'red'
-            ? 'text-slate-500 hover:text-red-400 hover:bg-slate-800/50'
-            : 'text-slate-500 hover:text-blue-400 hover:bg-slate-800/50';
-    }
-    return color === 'red'
-        ? 'text-slate-500 hover:text-red-600 hover:bg-slate-100'
-        : 'text-slate-500 hover:text-blue-600 hover:bg-slate-100';
+    const c = colorMap[props.accentColor];
+    if (isActive.value) return c.active;
+    if (isDark.value) return `text-slate-500 ${c.darkHover} hover:bg-slate-800/50`;
+    return `text-slate-500 ${c.lightHover} hover:bg-slate-100`;
 });
 
 const folderClasses = computed(() => {

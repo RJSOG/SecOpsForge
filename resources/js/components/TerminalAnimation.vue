@@ -22,7 +22,7 @@ const lines: TermLine[] = [
     { type: 'output', text: '╚══════════════════════════════════════╝', delay: 300 },
     { type: 'blank', text: '', delay: 400 },
     { type: 'command', text: 'ls ~/notes/', delay: 600 },
-    { type: 'output', text: 'redteam/    blueteam/', delay: 300 },
+    { type: 'output', text: 'redteam/    blueteam/    automation/', delay: 300 },
     { type: 'blank', text: '', delay: 400 },
     { type: 'command', text: 'echo "Ready to learn?"', delay: 500 },
     { type: 'output', text: 'Ready to learn?', delay: 200 },

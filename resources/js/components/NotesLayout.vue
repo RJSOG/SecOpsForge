@@ -15,7 +15,7 @@ const props = defineProps<{
     teamLabel: string;
     tree: NoteNode[];
     note: { title: string; content: string; path: string } | null;
-    accentColor: 'red' | 'blue';
+    accentColor: 'red' | 'blue' | 'amber';
 }>();
 
 const { isDark } = useTheme();
@@ -28,6 +28,10 @@ const accentClasses = {
     blue: {
         badge: 'bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/20',
         heading: 'text-blue-500',
+    },
+    amber: {
+        badge: 'bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20',
+        heading: 'text-amber-500',
     },
 };
 
