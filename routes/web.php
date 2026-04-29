@@ -38,3 +38,8 @@ Route::get('/automation/{path?}', [NotesController::class, 'automation'])
     ->name('automation');
 
 Route::get('/whoami', fn() => Inertia::render('WhoamiPage'))->name('whoami');
+
+// Auth pages
+Route::get('/login', fn() => Inertia::render('Auth/LoginPage'))
+    ->middleware('guest')
+    ->name('login');
