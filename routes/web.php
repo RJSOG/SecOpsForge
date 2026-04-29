@@ -43,3 +43,5 @@ Route::get('/whoami', fn() => Inertia::render('WhoamiPage'))->name('whoami');
 Route::get('/login', fn() => Inertia::render('Auth/LoginPage'))
     ->middleware('guest')
     ->name('login');
+
+require __DIR__ . '/auth.php';
