@@ -8,9 +8,10 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [RegisteredUserController::class, 'store'])
-    ->middleware('guest')
-    ->name('register');
+// Registration disabled — admin account created via seeder
+// Route::post('/register', [RegisteredUserController::class, 'store'])
+//     ->middleware('guest')
+//     ->name('register');
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest')

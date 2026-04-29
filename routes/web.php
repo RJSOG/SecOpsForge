@@ -1,11 +1,30 @@
 <?php
 
+use App\Http\Controllers\EditorController;
 use App\Http\Controllers\NotesController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn() => Inertia::render('HomePage'))->name('home');
+// Homepage with latest notes
+Route::get('/', function () {
+    return Inertia::render('HomePage', [
+        'latest' => NotesController::getLatestNotes(3),
+    ]);
+})->name('home');
 
+// Search
+Route::get('/api/search', [SearchController::class, 'search'])->name('search');
+
+// Editor (auth-protected)
+Route::middleware('auth')->group(function () {
+    Route::get('/editor', [EditorController::class, 'edit'])->name('editor');
+    Route::post('/api/editor/save', [EditorController::class, 'save'])->name('editor.save');
+    Route::post('/api/editor/delete', [EditorController::class, 'delete'])->name('editor.delete');
+    Route::post('/api/editor/preview', [EditorController::class, 'preview'])->name('editor.preview');
+});
+
+// Notes sections
 Route::get('/redteam/{path?}', [NotesController::class, 'redteam'])
     ->where('path', '.*')
     ->name('redteam');
