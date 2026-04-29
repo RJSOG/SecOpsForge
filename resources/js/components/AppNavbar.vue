@@ -27,6 +27,26 @@
                     <div class="ml-2">
                         <ThemeToggle />
                     </div>
+                    <!-- Auth -->
+                    <div class="ml-2 border-l pl-3" :class="isDark ? 'border-slate-700' : 'border-slate-200'">
+                        <form v-if="isAuthenticated" method="POST" action="/logout" @submit.prevent="logout">
+                            <button
+                                type="submit"
+                                class="rounded-md px-2.5 py-1.5 text-xs font-medium transition"
+                                :class="isDark ? 'text-slate-500 hover:text-red-400' : 'text-slate-400 hover:text-red-500'"
+                            >
+                                Logout
+                            </button>
+                        </form>
+                        <Link
+                            v-else
+                            href="/login"
+                            class="rounded-md px-2.5 py-1.5 text-xs font-medium transition"
+                            :class="isDark ? 'text-slate-500 hover:text-emerald-400' : 'text-slate-400 hover:text-emerald-600'"
+                        >
+                            Login
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
@@ -38,10 +58,17 @@ import LogoIcon from '@/components/LogoIcon.vue';
 import SearchBar from '@/components/SearchBar.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useTheme } from '@/composables/useTheme';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 
 const page = usePage();
 const { isDark } = useTheme();
+const isAuthenticated = !!page.props.auth?.user;
+
+async function logout() {
+    await axios.post('/logout');
+    router.visit('/');
+}
 
 const links = [
     { name: 'Home', href: '/' },
