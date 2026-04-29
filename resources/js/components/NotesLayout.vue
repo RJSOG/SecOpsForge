@@ -2,6 +2,7 @@
 import AppNavbar from '@/components/AppNavbar.vue';
 import NotesSidebar from '@/components/NotesSidebar.vue';
 import { useTheme } from '@/composables/useTheme';
+import { Link, usePage } from '@inertiajs/vue3';
 
 interface NoteNode {
     name: string;
@@ -19,6 +20,8 @@ const props = defineProps<{
 }>();
 
 const { isDark } = useTheme();
+const page = usePage();
+const isAuthenticated = !!page.props.auth?.user;
 
 const accentClasses = {
     red: {
@@ -52,9 +55,21 @@ const accent = accentClasses[props.accentColor];
                         <span :class="['inline-block rounded-full px-3 py-1 text-xs font-medium', accent.badge]">
                             {{ teamLabel }}
                         </span>
-                        <h1 class="mt-3 text-2xl font-bold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
-                            {{ note.title }}
-                        </h1>
+                        <div class="mt-3 flex items-center gap-3">
+                            <h1 class="text-2xl font-bold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
+                                {{ note.title }}
+                            </h1>
+                            <Link
+                                v-if="isAuthenticated && note"
+                                :href="`/editor?team=${team}&path=${note.path}`"
+                                class="rounded-md px-2.5 py-1 text-xs font-medium transition"
+                                :class="isDark
+                                    ? 'text-slate-500 hover:bg-slate-800 hover:text-emerald-400'
+                                    : 'text-slate-400 hover:bg-slate-100 hover:text-emerald-600'"
+                            >
+                                Edit
+                            </Link>
+                        </div>
                     </div>
                     <article
                         v-if="isDark"
