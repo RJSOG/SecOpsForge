@@ -59,15 +59,15 @@ import SearchBar from '@/components/SearchBar.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
 
 const page = usePage();
 const { isDark } = useTheme();
 const isAuthenticated = !!page.props.auth?.user;
 
-async function logout() {
-    await axios.post('/logout');
-    router.visit('/');
+function logout() {
+    router.post('/logout', {}, {
+        onSuccess: () => router.visit('/'),
+    });
 }
 
 const links = [
