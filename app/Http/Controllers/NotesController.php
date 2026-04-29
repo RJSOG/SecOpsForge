@@ -15,6 +15,60 @@ use League\CommonMark\MarkdownConverter;
 
 class NotesController extends Controller
 {
+    private const TEAMS = ['redteam', 'blueteam', 'automation'];
+
+    /**
+     * Get the latest modified notes for each section.
+     */
+    public static function getLatestNotes(int $perSection = 3): array
+    {
+        $latest = [];
+
+        foreach (self::TEAMS as $team) {
+            try {
+                $basePath = Storage::disk('private')->path('md/' . $team);
+            } catch (\Exception $e) {
+                $basePath = storage_path('app/private/md/' . $team);
+            }
+
+            if (!is_dir($basePath)) continue;
+
+            $files = [];
+            self::collectFiles($basePath, $basePath, $team, $files);
+
+            // Sort by modification time, newest first
+            usort($files, fn($a, $b) => $b['mtime'] - $a['mtime']);
+
+            $latest[$team] = array_slice($files, 0, $perSection);
+        }
+
+        return $latest;
+    }
+
+    private static function collectFiles(string $basePath, string $dir, string $team, array &$files): void
+    {
+        foreach (scandir($dir) as $entry) {
+            if ($entry === '.' || $entry === '..' || str_starts_with($entry, '.')) continue;
+
+            $fullPath = $dir . DIRECTORY_SEPARATOR . $entry;
+
+            if (is_dir($fullPath)) {
+                self::collectFiles($basePath, $fullPath, $team, $files);
+            } elseif (pathinfo($entry, PATHINFO_EXTENSION) === 'md') {
+                $relative = substr($fullPath, strlen($basePath) + 1);
+                $cleanPath = preg_replace('/\.md$/', '', $relative);
+                $files[] = [
+                    'title' => pathinfo($entry, PATHINFO_FILENAME),
+                    'path' => $cleanPath,
+                    'url' => '/' . $team . '/' . $cleanPath,
+                    'team' => $team,
+                    'mtime' => filemtime($fullPath),
+                    'date' => date('d M Y', filemtime($fullPath)),
+                ];
+            }
+        }
+    }
+
     public function redteam(?string $path = null): Response
     {
         return $this->renderNotes('redteam', 'RedTeamPage', $path);

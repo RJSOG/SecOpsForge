@@ -22,6 +22,9 @@
                         {{ link.name }}
                     </Link>
                     <div class="ml-3 border-l pl-3" :class="isDark ? 'border-slate-700' : 'border-slate-200'">
+                        <SearchBar />
+                    </div>
+                    <div class="ml-2">
                         <ThemeToggle />
                     </div>
                 </div>
@@ -32,6 +35,7 @@
 
 <script setup lang="ts">
 import LogoIcon from '@/components/LogoIcon.vue';
+import SearchBar from '@/components/SearchBar.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Link, usePage } from '@inertiajs/vue3';

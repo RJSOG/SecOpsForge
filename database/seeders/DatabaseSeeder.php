@@ -17,5 +17,7 @@ class DatabaseSeeder extends Seeder
             'email' => env('FRONT_SERVICE_EMAIL'),
             'name' => env('APP_NAME'), 'password' => bcrypt(env('FRONT_SERVICE_SECRET'))
         ]);
+
+        $this->call(AdminSeeder::class);
     }
 }
