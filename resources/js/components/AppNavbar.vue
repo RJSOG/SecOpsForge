@@ -43,6 +43,7 @@ const links = [
     { name: 'Home', href: '/' },
     { name: 'Red Team', href: '/redteam' },
     { name: 'Blue Team', href: '/blueteam' },
+    { name: 'Automation', href: '/automation' },
     { name: 'Whoami', href: '/whoami' },
 ];
 

@@ -14,4 +14,8 @@ Route::get('/blueteam/{path?}', [NotesController::class, 'blueteam'])
     ->where('path', '.*')
     ->name('blueteam');
 
+Route::get('/automation/{path?}', [NotesController::class, 'automation'])
+    ->where('path', '.*')
+    ->name('automation');
+
 Route::get('/whoami', fn() => Inertia::render('WhoamiPage'))->name('whoami');

@@ -25,6 +25,11 @@ class NotesController extends Controller
         return $this->renderNotes('blueteam', 'BlueTeamPage', $path);
     }
 
+    public function automation(?string $path = null): Response
+    {
+        return $this->renderNotes('automation', 'AutomationPage', $path);
+    }
+
     private function getStoragePath(string $team): string
     {
         // Try the 'private' disk first, fall back to direct storage path
