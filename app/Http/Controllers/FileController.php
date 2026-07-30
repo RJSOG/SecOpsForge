@@ -90,15 +90,14 @@ class FileController extends Controller
 
         $transaction->save();
 
-        $latestFileTree = Transaction::where('event', EventEnum::BUILD_FILE_TREE)
+        $latestFileTreeTransaction = Transaction::where('event', EventEnum::BUILD_FILE_TREE)
             ->where('details->input->root', $validated['root'])
             ->latest()
-            ->first()
-            ->details;
+            ->first();
 
-        $latestOutput = $latestFileTree['output'] ?? 0;
+        $latestOutput = $latestFileTreeTransaction?->details['output'] ?? [];
 
-        $isValid = $latestOutput['hash'] === $validated['hash'];
+        $isValid = ($latestOutput['hash'] ?? null) === $validated['hash'];
 
         $details = $transaction->details;
         $details['output'] = [
@@ -109,7 +108,6 @@ class FileController extends Controller
             'details' => $details,
             'status' => StatusEnum::COMPLETED,
         ]);
-        $transaction->save();
 
         return response()->json([
             'is_valid' => $isValid,

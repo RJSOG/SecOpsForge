@@ -5,6 +5,13 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Silence PHP-level deprecation notices (e.g. the PDO::MYSQL_ATTR_SSL_CA constant
+// deprecation on PHP 8.5+ triggered by vendor/laravel/framework/config/database.php).
+// Without this, PHP echoes them as raw HTML before Laravel even boots, which corrupts
+// every JSON response and breaks Inertia's client-side navigation ("href.toString"
+// errors, links doing nothing).
+error_reporting(E_ALL & ~E_DEPRECATED);
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;

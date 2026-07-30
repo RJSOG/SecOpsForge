@@ -47,8 +47,6 @@ class BuildFileTreeJob implements ShouldQueue
             'status' => StatusEnum::COMPLETED,
         ]);
 
-        $this->transaction->save();
-
         $this->terminate();
     }
 
@@ -60,7 +58,6 @@ class BuildFileTreeJob implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $this->transaction->update(['status' => StatusEnum::FAILED]);
-        $this->transaction->save();
 
         $this->terminate($exception);
 

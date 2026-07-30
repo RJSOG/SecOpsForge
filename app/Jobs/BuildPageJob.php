@@ -3,11 +3,11 @@
 namespace App\Jobs;
 
 use App\Enum\StatusEnum;
+use App\Events\CallbackEvent;
 use App\Models\Transaction;
 use App\Services\Builder\PageBuilder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Inertia\Inertia;
 use League\CommonMark\Exception\CommonMarkException;
 use Throwable;
 
@@ -47,8 +47,6 @@ class BuildPageJob implements ShouldQueue
             'details' => $details,
         ]);
 
-        $this->transaction->save();
-
         $this->terminate();
     }
 
@@ -60,16 +58,28 @@ class BuildPageJob implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $this->transaction->update(['status' => StatusEnum::FAILED]);
-        $this->transaction->save();
+
+        $this->terminate($exception);
 
         throw $exception;
     }
 
     /**
+     * @param Throwable|null $exception
      * @return void
      */
-    public function terminate(): void
+    public function terminate(Throwable $exception = null): void
     {
-        Inertia::render($this->transaction->details['input']['source'], $this->transaction->details['result']);
+        $output = $this->transaction->status === StatusEnum::COMPLETED
+            ? $this->transaction->details['output']
+            : $exception->getMessage();
+
+        $callbackEvent = new CallbackEvent(
+            output: $output,
+            status: $this->transaction->status->value,
+            broadcastOn: 'build.file.page',
+        );
+
+        event($callbackEvent);
     }
 }

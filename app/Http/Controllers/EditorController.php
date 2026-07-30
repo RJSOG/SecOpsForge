@@ -146,14 +146,37 @@ class EditorController extends Controller
 
     private function resolveFilePath(string $team, string $path): ?string
     {
+        // Security: no traversal
+        if (Str::contains($path, ['..', "\0"])) {
+            return null;
+        }
+
         $basePath = Storage::disk('private')->path('md/' . $team);
 
         $filePath = $basePath . '/' . $path . '.md';
-        if (file_exists($filePath)) return $filePath;
+        if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) return $filePath;
 
         $filePath = $basePath . '/' . $path;
-        if (file_exists($filePath)) return $filePath;
+        if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) return $filePath;
 
         return null;
+    }
+
+    /**
+     * Defense in depth: confirm the resolved real path is still inside the team's base path,
+     * catching traversal attempts that survive the '..' string check (symlinks, encoded paths, etc.).
+     */
+    private function isWithinBasePath(string $filePath, string $basePath): bool
+    {
+        $realBase = realpath($basePath);
+        $realFile = realpath($filePath);
+
+        // File may not exist yet; if so, fall back to a normalized-path comparison.
+        if ($realFile === false) {
+            $normalized = str_replace('\\', '/', $filePath);
+            return $realBase !== false && str_starts_with($normalized, str_replace('\\', '/', $realBase) . '/');
+        }
+
+        return $realBase !== false && str_starts_with($realFile, $realBase . DIRECTORY_SEPARATOR);
     }
 }

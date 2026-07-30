@@ -3,8 +3,6 @@
 namespace App\Services\Builder;
 
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
 
 class FileTreeBuilder extends DataBuilder
 {
@@ -92,13 +90,13 @@ class FileTreeBuilder extends DataBuilder
             }
 
             $fullPath = $root . DIRECTORY_SEPARATOR . $entry;
-            $current = str_replace(storage_path('app' . DIRECTORY_SEPARATOR . 'private'), '', $fullPath);
+            $relativePath = str_replace(storage_path('app' . DIRECTORY_SEPARATOR . 'private'), '', $fullPath);
 
             if (is_dir($fullPath)) {
                 $result[] = [
                     'name' => $entry,
                     'type' => 'folder',
-                    'path' => $current,
+                    'path' => $relativePath,
                     'children' => $this->recursiveReader($fullPath, $fullPath, false),
                     'isParent' => $isParent,
                 ];
@@ -106,7 +104,7 @@ class FileTreeBuilder extends DataBuilder
                 $result[] = [
                     'name' => pathinfo($entry, PATHINFO_FILENAME),
                     'type' => 'file',
-                    'path' => $current,
+                    'path' => $relativePath,
                 ];
             }
         }

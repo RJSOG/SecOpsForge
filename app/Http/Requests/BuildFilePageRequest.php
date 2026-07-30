@@ -14,12 +14,12 @@ class BuildFilePageRequest extends FormRequest
     {
         $path = request('path');
         $format = Str::afterLast($path, '.');
-        $source =
+        $source = request('source', '');
 
         $this->merge([
             'path' => $path,
             'format' => $format,
-            'source' => '',
+            'source' => $source,
         ]);
     }
 

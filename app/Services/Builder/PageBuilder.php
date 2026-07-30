@@ -32,7 +32,7 @@ class PageBuilder extends DataBuilder
      */
     public function load(): static
     {
-        $this->format = Str::of($this->input['path'])->afterLast('.');
+        $this->format = Str::afterLast($this->input['path'], '.');
 
         $path = $this->format . '/' . $this->input['path'];
 
@@ -66,12 +66,12 @@ class PageBuilder extends DataBuilder
         return $this;
     }
 
-        /**
+    /**
      * @return static
      */
     public function terminate(): static
     {
-        $title = preg_match('/(?<=\/)([a-zA-Z]+)(?=\.)/', $this->path);
+        $title = pathinfo($this->path, PATHINFO_FILENAME);
 
         $this->output = [
             'title' => $title,

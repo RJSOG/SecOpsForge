@@ -12,6 +12,8 @@ Route::prefix('build')
             ->group(function () {
                 Route::post('tree', [FileController::class, 'buildFileTree'])
                     ->name('tree');
+                Route::post('page', [FileController::class, 'buildFilePage'])
+                    ->name('page');
             });
     })
     ->withoutMiddleware(HandleInertiaRequests::class);
