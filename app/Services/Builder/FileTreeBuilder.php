@@ -3,6 +3,8 @@
 namespace App\Services\Builder;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class FileTreeBuilder extends DataBuilder
 {
@@ -30,16 +32,33 @@ class FileTreeBuilder extends DataBuilder
 
     /**
      * @return $this
+     *
+     * @throws InvalidArgumentException if 'root' resolves outside the format's base directory.
      */
     public function load(): static
     {
         $this->format = $this->input['format'];
-        $this->current = $this->input['root'];
+        $this->current = $this->input['root'] ?? '';
 
-        $this->root = rtrim(
-            Storage::disk('private')->path($this->format . '/' . $this->current),
-            '/'
-        );
+        $baseDir = rtrim(Storage::disk('private')->path($this->format), DIRECTORY_SEPARATOR);
+        $requestedDir = rtrim(Storage::disk('private')->path($this->format . '/' . $this->current), DIRECTORY_SEPARATOR);
+
+        // Security: canonicalize both paths and verify the requested root is
+        // the base directory itself or a real descendant of it. realpath()
+        // also collapses '..' segments, so this closes the traversal that a
+        // raw string concatenation would otherwise allow.
+        $realBase = realpath($baseDir);
+        $realRequested = realpath($requestedDir);
+
+        if (
+            !$realBase
+            || !$realRequested
+            || ($realRequested !== $realBase && !Str::startsWith($realRequested, $realBase . DIRECTORY_SEPARATOR))
+        ) {
+            throw new InvalidArgumentException('Invalid root path.');
+        }
+
+        $this->root = $realRequested;
 
         return $this;
     }

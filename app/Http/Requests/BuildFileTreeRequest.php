@@ -17,7 +17,22 @@ class BuildFileTreeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'root' => 'string|nullable',
+            // Defense in depth: reject obvious traversal/absolute-path attempts
+            // here, in addition to the realpath() canonicalization done in
+            // FileTreeBuilder::load().
+            'root' => [
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    if (str_starts_with($value, '/') || str_contains($value, '..') || str_contains($value, "\0")) {
+                        $fail('The root path is invalid.');
+                    }
+                },
+            ],
             'format' => [
                 'required',
                 'string',

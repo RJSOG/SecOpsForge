@@ -11,6 +11,7 @@ use App\Jobs\BuildFileTreeJob;
 use App\Jobs\BuildPageJob;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 
 class FileController extends Controller
 {
@@ -36,12 +37,29 @@ class FileController extends Controller
 
         $transaction->save();
 
-        BuildPageJob::dispatchSync($transaction);
+        // dispatchSync() runs the job inline, in this same request, before we
+        // ever get here: by the time we respond the work is already done.
+        // 202 Accepted ("processing, not finished yet") was misleading; we
+        // return 200 with the completed result instead.
+        try {
+            BuildPageJob::dispatchSync($transaction);
+        } catch (InvalidArgumentException $e) {
+            $transaction->update(['status' => StatusEnum::FAILED]);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+                'transaction_id' => $transaction->id,
+            ], 422);
+        }
+
+        $transaction->refresh();
 
         return response()->json([
-            'message' => 'Started to build file page',
+            'message' => 'File page built',
             'transaction_id' => $transaction->id,
-        ], 202); // 202 Accepted
+            'status' => $transaction->status,
+            'output' => $transaction->details['output'] ?? null,
+        ], 200);
     }
 
     /**
@@ -65,12 +83,25 @@ class FileController extends Controller
 
         $transaction->save();
 
-        BuildFileTreeJob::dispatchSync($transaction);
+        try {
+            BuildFileTreeJob::dispatchSync($transaction);
+        } catch (InvalidArgumentException $e) {
+            $transaction->update(['status' => StatusEnum::FAILED]);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+                'transaction_id' => $transaction->id,
+            ], 422);
+        }
+
+        $transaction->refresh();
 
         return response()->json([
-            'message' => 'Started to build file tree',
+            'message' => 'File tree built',
             'transaction_id' => $transaction->id,
-        ], 202); // 202 Accepted
+            'status' => $transaction->status,
+            'output' => $transaction->details['output'] ?? null,
+        ], 200);
     }
 
     public function validateFileTree(ValidateFileTreeRequest $request): JsonResponse

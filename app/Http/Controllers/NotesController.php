@@ -137,11 +137,13 @@ class NotesController extends Controller
             abort(404);
         }
 
-        // Security: prevent directory traversal
+        // Security: prevent directory traversal. The trailing separator is
+        // required so a sibling directory sharing a prefix (e.g. "notes-redteam"
+        // vs "notes") cannot pass the check.
         $realFile = realpath($filePath);
         $realBase = realpath($storagePath);
 
-        if (!$realFile || !$realBase || !Str::startsWith($realFile, $realBase)) {
+        if (!$realFile || !$realBase || !Str::startsWith($realFile, $realBase . DIRECTORY_SEPARATOR)) {
             abort(404);
         }
 

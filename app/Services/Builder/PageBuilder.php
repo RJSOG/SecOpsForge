@@ -55,8 +55,14 @@ class PageBuilder extends DataBuilder
             throw new InvalidArgumentException('Can\'t build page ! Invalid format !');
         }
 
+        // Security: match the safe configuration used by the main note
+        // renderer (NotesController::getConverter()) instead of CommonMark's
+        // permissive defaults, which allow raw HTML and javascript: links.
         $converter = match ($this->format) {
-            'md' => new CommonMarkConverter(),
+            'md' => new CommonMarkConverter([
+                'html_input' => 'strip',
+                'allow_unsafe_links' => false,
+            ]),
         };
 
         $content = file_get_contents($this->path);
