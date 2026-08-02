@@ -43,6 +43,11 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            // Intentionally NOT in $fillable: is_admin must never be settable
+            // via mass assignment from request input (registration, profile
+            // update, etc.) — only via direct property assignment in trusted
+            // code (seeders, artisan commands).
+            'is_admin' => 'boolean',
         ];
     }
 }

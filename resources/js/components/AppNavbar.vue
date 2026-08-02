@@ -13,7 +13,7 @@
                 </Link>
                 <div class="flex items-center space-x-1">
                     <Link
-                        v-for="link in links"
+                        v-for="link in visibleLinks"
                         :key="link.name"
                         :href="link.href"
                         class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-150"
@@ -59,10 +59,15 @@ import SearchBar from '@/components/SearchBar.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const page = usePage();
 const { isDark } = useTheme();
 const isAuthenticated = !!page.props.auth?.user;
+// is_admin is shared via HandleInertiaRequests -> auth.user. Only the admin
+// account gets a link to /editor; the backend enforces this independently
+// (EnsureUserIsAdmin), this is purely a UX shortcut.
+const isAdmin = computed(() => !!(page.props.auth?.user as { is_admin?: boolean } | undefined)?.is_admin);
 
 function logout() {
     router.post('/logout', {}, {
@@ -77,6 +82,10 @@ const links = [
     { name: 'Automation', href: '/automation' },
     { name: 'Whoami', href: '/whoami' },
 ];
+
+const visibleLinks = computed(() =>
+    isAdmin.value ? [...links, { name: 'Editor', href: '/editor' }] : links
+);
 
 function getLinkClasses(href: string) {
     const isActive = isActiveLink(href);

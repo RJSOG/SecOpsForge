@@ -16,8 +16,8 @@ Route::get('/', function () {
 // Search
 Route::get('/api/search', [SearchController::class, 'search'])->name('search');
 
-// Editor (auth-protected)
-Route::middleware('auth')->group(function () {
+// Editor (admin-only: any other authenticated account gets a 403)
+Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/editor', [EditorController::class, 'edit'])->name('editor');
     Route::post('/api/editor/save', [EditorController::class, 'save'])->name('editor.save');
     Route::post('/api/editor/delete', [EditorController::class, 'delete'])->name('editor.delete');

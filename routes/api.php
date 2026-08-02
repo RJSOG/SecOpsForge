@@ -4,10 +4,6 @@ use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 
-// Security: these endpoints read/write the filesystem and were previously
-// reachable without authentication. Require a logged-in session (the api
-// middleware group is stateful via Sanctum, so the standard 'auth' guard
-// works here) for all of them.
 Route::middleware('auth')->group(function () {
     Route::prefix('build')
         ->name('build.')
