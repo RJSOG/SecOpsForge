@@ -77,7 +77,7 @@ class EditorController extends Controller
             return response()->json(['error' => 'Invalid path'], 400);
         }
 
-        $basePath = Storage::disk('private')->path('md/' . $team);
+        $basePath = Storage::disk('notes')->path($team);
         $filePath = $basePath . '/' . $path;
 
         $dir = dirname($filePath);
@@ -115,7 +115,7 @@ class EditorController extends Controller
         unlink($filePath);
 
         $dir = dirname($filePath);
-        $basePath = Storage::disk('private')->path('md/' . $validated['team']);
+        $basePath = Storage::disk('notes')->path($validated['team']);
         while ($dir !== $basePath && is_dir($dir) && count(scandir($dir)) === 2) {
             rmdir($dir);
             $dir = dirname($dir);
@@ -158,7 +158,7 @@ class EditorController extends Controller
             return null;
         }
 
-        $basePath = Storage::disk('private')->path('md/' . $team);
+        $basePath = Storage::disk('notes')->path($team);
 
         $filePath = $basePath . '/' . $path . '.md';
         if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) return $filePath;

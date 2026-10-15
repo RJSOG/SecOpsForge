@@ -1,14 +1,9 @@
 import { createInertiaApp } from '@inertiajs/vue3';
-import { configureEcho } from '@laravel/echo-vue';
 import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h, type DefineComponent } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import '../css/app.css';
-
-configureEcho({
-    broadcaster: 'pusher',
-});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const initializeFrontAuth = async () => {

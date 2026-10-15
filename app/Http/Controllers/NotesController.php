@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enum\TeamEnum;
-use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -27,11 +26,7 @@ class NotesController extends Controller
         $latest = [];
 
         foreach (TeamEnum::getAllValues() as $team) {
-            try {
-                $basePath = Storage::disk('private')->path('md/' . $team);
-            } catch (Exception $e) {
-                $basePath = storage_path('app/private/md/' . $team);
-            }
+            $basePath = Storage::disk('notes')->path($team);
 
             if (!is_dir($basePath)) continue;
 
@@ -113,11 +108,7 @@ class NotesController extends Controller
      */
     private function getStoragePath(string $team): string
     {
-        try {
-            return Storage::disk('private')->path('md/' . $team);
-        } catch (Exception $e) {
-            return storage_path('app/private/md/' . $team);
-        }
+        return Storage::disk('notes')->path($team);
     }
 
     /**

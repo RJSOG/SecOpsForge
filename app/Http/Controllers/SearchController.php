@@ -25,7 +25,7 @@ class SearchController extends Controller
         $results = [];
 
         foreach (TeamEnum::getAllValues() as $team) {
-            $basePath = Storage::disk('private')->path('md/' . $team);
+            $basePath = Storage::disk('notes')->path($team);
 
             if (!is_dir($basePath)) continue;
 

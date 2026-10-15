@@ -23,7 +23,7 @@ const props = defineProps<{
 
 const { isDark } = useTheme();
 const page = usePage();
-const isAuthenticated = !!page.props.auth?.user;
+const isAdmin = !!(page.props.auth?.user as { is_admin?: boolean } | null)?.is_admin;
 const { highlightAll } = useHighlight();
 
 watch(
@@ -71,7 +71,7 @@ const accent = accentClasses[props.accentColor];
                                 {{ note.title }}
                             </h1>
                             <Link
-                                v-if="isAuthenticated && note"
+                                v-if="isAdmin && note"
                                 :href="`/editor?team=${team}&path=${note.path}`"
                                 class="rounded-md px-2.5 py-1 text-xs font-medium transition"
                                 :class="isDark

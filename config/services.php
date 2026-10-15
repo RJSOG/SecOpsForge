@@ -34,8 +34,4 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-    'front' => [
-        'email' => env('FRONT_SERVICE_EMAIL'),
-        'secret' => env('FRONT_SERVICE_SECRET'),
-    ],
 ];
