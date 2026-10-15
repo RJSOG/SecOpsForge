@@ -14,7 +14,9 @@ Route::get('/', function () {
 })->name('home');
 
 // Search
-Route::get('/api/search', [SearchController::class, 'search'])->name('search');
+Route::get('/api/search', [SearchController::class, 'search'])
+    ->middleware('throttle:60,1')
+    ->name('search');
 
 // Editor (admin-only: any other authenticated account gets a 403)
 Route::middleware(['auth', 'admin'])->group(function () {

@@ -47,6 +47,14 @@ return [
             'report' => false,
         ],
 
+        // Markdown articles. Lives in its own git repository (see README),
+        // cloned into ./content by default.
+        'notes' => [
+            'driver' => 'local',
+            'root' => env('NOTES_PATH') ?: base_path('content'),
+            'visibility' => 'private',
+        ],
+
         'private' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),

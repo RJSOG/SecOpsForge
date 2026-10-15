@@ -2,31 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\TeamEnum;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Exception\CommonMarkException;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\TaskList\TaskListExtension;
 use League\CommonMark\MarkdownConverter;
 
+
 class EditorController extends Controller
 {
-    private const TEAMS = ['redteam', 'blueteam', 'automation'];
-
     /**
-     * Show the editor page for creating or editing a note.
+     * @param Request $request
+     * @return Response
      */
     public function edit(Request $request): Response
     {
-        $team = $request->input('team', 'redteam');
+        $team = $request->input('team', TeamEnum::RED_TEAM->value);
         $path = $request->input('path', '');
 
-        if (!in_array($team, self::TEAMS)) {
+        if (!is_string($team) || !TeamEnum::has($team)) {
             abort(404);
         }
 
@@ -46,17 +49,18 @@ class EditorController extends Controller
             'path' => $path,
             'content' => $content,
             'isNew' => $isNew,
-            'teams' => self::TEAMS,
+            'teams' => TeamEnum::getAllValues(),
         ]);
     }
 
     /**
-     * Save (create or update) a note.
+     * @param Request $request
+     * @return JsonResponse
      */
     public function save(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'team' => 'required|in:redteam,blueteam,automation',
+            'team' => ['required', Rule::enum(TeamEnum::class)],
             'path' => 'required|string|max:500',
             'content' => 'required|string',
         ]);
@@ -65,20 +69,17 @@ class EditorController extends Controller
         $path = $validated['path'];
         $content = $validated['content'];
 
-        // Ensure path ends with .md
         if (!Str::endsWith($path, '.md')) {
             $path .= '.md';
         }
 
-        // Security: no traversal
         if (Str::contains($path, ['..', "\0"])) {
             return response()->json(['error' => 'Invalid path'], 400);
         }
 
-        $basePath = Storage::disk('private')->path('md/' . $team);
+        $basePath = Storage::disk('notes')->path($team);
         $filePath = $basePath . '/' . $path;
 
-        // Ensure directory exists
         $dir = dirname($filePath);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
@@ -95,12 +96,13 @@ class EditorController extends Controller
     }
 
     /**
-     * Delete a note.
+     * @param Request $request
+     * @return JsonResponse
      */
     public function delete(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'team' => 'required|in:redteam,blueteam,automation',
+            'team' => ['required', Rule::enum(TeamEnum::class)],
             'path' => 'required|string',
         ]);
 
@@ -112,9 +114,8 @@ class EditorController extends Controller
 
         unlink($filePath);
 
-        // Clean up empty directories
         $dir = dirname($filePath);
-        $basePath = Storage::disk('private')->path('md/' . $validated['team']);
+        $basePath = Storage::disk('notes')->path($validated['team']);
         while ($dir !== $basePath && is_dir($dir) && count(scandir($dir)) === 2) {
             rmdir($dir);
             $dir = dirname($dir);
@@ -124,7 +125,9 @@ class EditorController extends Controller
     }
 
     /**
-     * Preview markdown as HTML.
+     * @param Request $request
+     * @return JsonResponse
+     * @throws CommonMarkException
      */
     public function preview(Request $request): JsonResponse
     {
@@ -144,14 +147,18 @@ class EditorController extends Controller
         return response()->json(['html' => $html]);
     }
 
+    /**
+     * @param string $team
+     * @param string $path
+     * @return string|null
+     */
     private function resolveFilePath(string $team, string $path): ?string
     {
-        // Security: no traversal
         if (Str::contains($path, ['..', "\0"])) {
             return null;
         }
 
-        $basePath = Storage::disk('private')->path('md/' . $team);
+        $basePath = Storage::disk('notes')->path($team);
 
         $filePath = $basePath . '/' . $path . '.md';
         if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) return $filePath;
@@ -163,18 +170,21 @@ class EditorController extends Controller
     }
 
     /**
-     * Defense in depth: confirm the resolved real path is still inside the team's base path,
-     * catching traversal attempts that survive the '..' string check (symlinks, encoded paths, etc.).
+     * @param string $filePath
+     * @param string $basePath
+     * @return bool
      */
     private function isWithinBasePath(string $filePath, string $basePath): bool
     {
         $realBase = realpath($basePath);
         $realFile = realpath($filePath);
 
-        // File may not exist yet; if so, fall back to a normalized-path comparison.
         if ($realFile === false) {
             $normalized = str_replace('\\', '/', $filePath);
-            return $realBase !== false && str_starts_with($normalized, str_replace('\\', '/', $realBase) . '/');
+            return $realBase !== false && str_starts_with(
+                $normalized,
+                str_replace('\\', '/', $realBase) . '/'
+            );
         }
 
         return $realBase !== false && str_starts_with($realFile, $realBase . DIRECTORY_SEPARATOR);

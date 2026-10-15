@@ -22,8 +22,6 @@ export default defineConfig({
             '@inertiajs/vue3',
             '@vueuse/core',
             'ziggy-js',
-            'laravel-echo',
-            'pusher-js',
             'laravel-vite-plugin/inertia-helpers',
         ],
     },

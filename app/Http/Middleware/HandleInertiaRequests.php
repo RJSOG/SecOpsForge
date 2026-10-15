@@ -33,7 +33,8 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                // Only what the UI needs: never ship the full model to the browser.
+                'user' => $request->user()?->only(['id', 'name', 'is_admin']),
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

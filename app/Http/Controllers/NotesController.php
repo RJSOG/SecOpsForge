@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\TeamEnum;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Exception\CommonMarkException;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\TaskList\TaskListExtension;
@@ -15,28 +17,22 @@ use League\CommonMark\MarkdownConverter;
 
 class NotesController extends Controller
 {
-    private const TEAMS = ['redteam', 'blueteam', 'automation'];
-
     /**
-     * Get the latest modified notes for each section.
+     * @param int $perSection
+     * @return array
      */
     public static function getLatestNotes(int $perSection = 3): array
     {
         $latest = [];
 
-        foreach (self::TEAMS as $team) {
-            try {
-                $basePath = Storage::disk('private')->path('md/' . $team);
-            } catch (\Exception $e) {
-                $basePath = storage_path('app/private/md/' . $team);
-            }
+        foreach (TeamEnum::getAllValues() as $team) {
+            $basePath = Storage::disk('notes')->path($team);
 
             if (!is_dir($basePath)) continue;
 
             $files = [];
             self::collectFiles($basePath, $basePath, $team, $files);
 
-            // Sort by modification time, newest first
             usort($files, fn($a, $b) => $b['mtime'] - $a['mtime']);
 
             $latest[$team] = array_slice($files, 0, $perSection);
@@ -45,6 +41,13 @@ class NotesController extends Controller
         return $latest;
     }
 
+    /**
+     * @param string $basePath
+     * @param string $dir
+     * @param string $team
+     * @param array $files
+     * @return void
+     */
     private static function collectFiles(string $basePath, string $dir, string $team, array &$files): void
     {
         foreach (scandir($dir) as $entry) {
@@ -69,46 +72,64 @@ class NotesController extends Controller
         }
     }
 
+    /**
+     * @param string|null $path
+     * @return Response
+     * @throws CommonMarkException
+     */
     public function redteam(?string $path = null): Response
     {
-        return $this->renderNotes('redteam', 'RedTeamPage', $path);
+        return $this->renderNotes(TeamEnum::RED_TEAM->value, 'RedTeamPage', $path);
     }
 
+    /**
+     * @param string|null $path
+     * @return Response
+     * @throws CommonMarkException
+     */
     public function blueteam(?string $path = null): Response
     {
-        return $this->renderNotes('blueteam', 'BlueTeamPage', $path);
+        return $this->renderNotes(TeamEnum::BLUE_TEAM->value, 'BlueTeamPage', $path);
     }
 
+    /**
+     * @param string|null $path
+     * @return Response
+     * @throws CommonMarkException
+     */
     public function automation(?string $path = null): Response
     {
-        return $this->renderNotes('automation', 'AutomationPage', $path);
+        return $this->renderNotes(TeamEnum::AUTOMATION->value, 'AutomationPage', $path);
     }
 
+    /**
+     * @param string $team
+     * @return string
+     */
     private function getStoragePath(string $team): string
     {
-        // Try the 'private' disk first, fall back to direct storage path
-        try {
-            return Storage::disk('private')->path('md/' . $team);
-        } catch (\Exception $e) {
-            return storage_path('app/private/md/' . $team);
-        }
+        return Storage::disk('notes')->path($team);
     }
 
+    /**
+     * @param string $team
+     * @param string $page
+     * @param string|null $path
+     * @return Response
+     * @throws CommonMarkException
+     */
     private function renderNotes(string $team, string $page, ?string $path): Response
     {
         $storagePath = $this->getStoragePath($team);
 
-        // Ensure directory exists
         if (!is_dir($storagePath)) {
             @mkdir($storagePath, 0755, true);
         }
 
-        // Build file tree
         $tree = $this->buildTree($storagePath);
 
         Log::debug("NotesController: team={$team}, storagePath={$storagePath}, path={$path}, treeCount=" . count($tree));
 
-        // Render markdown if a path is given
         $note = null;
 
         if ($path) {
@@ -122,9 +143,14 @@ class NotesController extends Controller
         ]);
     }
 
+    /**
+     * @param string $storagePath
+     * @param string $path
+     * @return array|null
+     * @throws CommonMarkException
+     */
     private function renderMarkdown(string $storagePath, string $path): ?array
     {
-        // Try with .md appended first, then as-is (in case path already has .md)
         $filePath = $storagePath . '/' . $path . '.md';
 
         if (!file_exists($filePath)) {
@@ -137,9 +163,6 @@ class NotesController extends Controller
             abort(404);
         }
 
-        // Security: prevent directory traversal. The trailing separator is
-        // required so a sibling directory sharing a prefix (e.g. "notes-redteam"
-        // vs "notes") cannot pass the check.
         $realFile = realpath($filePath);
         $realBase = realpath($storagePath);
 
@@ -157,6 +180,9 @@ class NotesController extends Controller
         ];
     }
 
+    /**
+     * @return MarkdownConverter
+     */
     private function getConverter(): MarkdownConverter
     {
         $environment = new Environment([
@@ -170,6 +196,11 @@ class NotesController extends Controller
         return new MarkdownConverter($environment);
     }
 
+    /**
+     * @param string $basePath
+     * @param string $relativeTo
+     * @return array
+     */
     private function buildTree(string $basePath, string $relativeTo = ''): array
     {
         $result = [];

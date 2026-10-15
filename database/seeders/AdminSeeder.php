@@ -37,7 +37,7 @@ class AdminSeeder extends Seeder
         $user = User::updateOrCreate(
             ['email' => $email],
             [
-                'name' => env('ADMIN_NAME', 'Admin'),
+                'name' => env('ADMIN_NAME') ?: 'Admin',
                 'password' => Hash::make($password),
                 'email_verified_at' => now(),
             ]

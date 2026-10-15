@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\TeamEnum;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -9,8 +10,10 @@ use Illuminate\Support\Str;
 
 class SearchController extends Controller
 {
-    private const TEAMS = ['redteam', 'blueteam', 'automation'];
-
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function search(Request $request): JsonResponse
     {
         $query = $request->input('q', '');
@@ -21,15 +24,14 @@ class SearchController extends Controller
 
         $results = [];
 
-        foreach (self::TEAMS as $team) {
-            $basePath = Storage::disk('private')->path('md/' . $team);
+        foreach (TeamEnum::getAllValues() as $team) {
+            $basePath = Storage::disk('notes')->path($team);
 
             if (!is_dir($basePath)) continue;
 
             $this->searchDir($basePath, $basePath, $team, $query, $results);
         }
 
-        // Sort by relevance (title matches first)
         usort($results, fn($a, $b) => $b['score'] - $a['score']);
 
         return response()->json([
@@ -37,6 +39,14 @@ class SearchController extends Controller
         ]);
     }
 
+    /**
+     * @param string $basePath
+     * @param string $dir
+     * @param string $team
+     * @param string $query
+     * @param array $results
+     * @return void
+     */
     private function searchDir(string $basePath, string $dir, string $team, string $query, array &$results): void
     {
         if (!is_dir($dir)) return;
@@ -54,6 +64,14 @@ class SearchController extends Controller
         }
     }
 
+    /**
+     * @param string $basePath
+     * @param string $filePath
+     * @param string $team
+     * @param string $query
+     * @param array $results
+     * @return void
+     */
     private function searchFile(string $basePath, string $filePath, string $team, string $query, array &$results): void
     {
         $content = file_get_contents($filePath);
@@ -67,12 +85,10 @@ class SearchController extends Controller
 
         $score = 0;
 
-        // Title match = high score
         if (str_contains($filenameLower, $queryLower)) {
             $score += 10;
         }
 
-        // Content match
         $contentMatches = substr_count($contentLower, $queryLower);
         if ($contentMatches > 0) {
             $score += min($contentMatches, 5);
@@ -80,7 +96,6 @@ class SearchController extends Controller
 
         if ($score === 0) return;
 
-        // Extract snippet around first match
         $snippet = '';
         $pos = mb_stripos($content, $query);
         if ($pos !== false) {
