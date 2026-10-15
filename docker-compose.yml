@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    image: secopsforge
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    env_file: .env
+    environment:
+      # Fixed for the container, whatever your .env says.
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/database/data/database.sqlite
+      NOTES_PATH: /app/content
+      SERVER_NAME: ${SERVER_NAME:-localhost}
+    volumes:
+      - app-data:/app/database/data
+      - app-storage:/app/storage
+      # The articles repository, cloned on the host (see DEPLOY.md).
+      - ${CONTENT_PATH:-./content}:/app/content
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  app-data:
+  app-storage:
+  caddy-data:
+  caddy-config:
