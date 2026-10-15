@@ -51,7 +51,7 @@ return [
         // cloned into ./content by default.
         'notes' => [
             'driver' => 'local',
-            'root' => env('NOTES_PATH', base_path('content')),
+            'root' => env('NOTES_PATH') ?: base_path('content'),
             'visibility' => 'private',
         ],
 
