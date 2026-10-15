@@ -37,10 +37,6 @@ class FileController extends Controller
 
         $transaction->save();
 
-        // dispatchSync() runs the job inline, in this same request, before we
-        // ever get here: by the time we respond the work is already done.
-        // 202 Accepted ("processing, not finished yet") was misleading; we
-        // return 200 with the completed result instead.
         try {
             BuildPageJob::dispatchSync($transaction);
         } catch (InvalidArgumentException $e) {
@@ -104,6 +100,10 @@ class FileController extends Controller
         ], 200);
     }
 
+    /**
+     * @param ValidateFileTreeRequest $request
+     * @return JsonResponse
+     */
     public function validateFileTree(ValidateFileTreeRequest $request): JsonResponse
     {
         $validated = $request->validated();
