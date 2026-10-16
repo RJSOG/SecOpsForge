@@ -1,0 +1,29 @@
+{
+	frankenphp
+	admin 127.0.0.1:2019
+	metrics
+	{$CADDY_GLOBAL_OPTIONS}
+}
+
+# SERVER_NAME is your domain (automatic HTTPS via Let's Encrypt), or ":80"
+# when another reverse proxy in front of the container handles TLS.
+{$SERVER_NAME:localhost} {
+	root * /app/public
+	encode zstd br gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+		-X-Powered-By
+	}
+
+	@assets path /build/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	php_server
+}
