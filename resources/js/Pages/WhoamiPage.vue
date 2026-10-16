@@ -17,10 +17,8 @@
                         <span class="text-slate-500">$</span> cat /etc/profile
                     </div>
                     <div class="mt-4 space-y-1 text-sm leading-relaxed text-emerald-300/90">
-                        <p>┌─────────────────────────────────────┐</p>
-                        <p>│ <span class="font-bold text-emerald-400">RJSOG</span> — Security Analyst            │</p>
-                        <p>│ Blue Team · Red Team · DevSecOps     │</p>
-                        <p>└─────────────────────────────────────┘</p>
+                        <p><span class="font-bold text-emerald-400">RJSOG</span></p>
+                        <p>Développeur · Sysadmin · Cybersécurité</p>
                     </div>
                 </div>
             </div>
@@ -28,49 +26,25 @@
             <!-- Sections grid -->
             <div class="grid gap-6 md:grid-cols-2">
 
-                <!-- Skills -->
-                <section class="rounded-lg border p-6" :class="cardClasses">
-                    <h2 class="mb-4 flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wider" :class="isDark ? 'text-emerald-400' : 'text-emerald-600'">
-                        <span class="text-slate-500">&gt;</span> skills --list
-                    </h2>
-                    <div class="space-y-3">
-                        <SkillBar label="Network Security" :level="85" :isDark="isDark" />
-                        <SkillBar label="Penetration Testing" :level="75" :isDark="isDark" />
-                        <SkillBar label="SIEM / Log Analysis" :level="80" :isDark="isDark" />
-                        <SkillBar label="Linux Administration" :level="85" :isDark="isDark" />
-                        <SkillBar label="Python / Scripting" :level="70" :isDark="isDark" />
-                        <SkillBar label="Web Security" :level="75" :isDark="isDark" />
-                    </div>
-                </section>
-
-                <!-- Certifications -->
-                <section class="rounded-lg border p-6" :class="cardClasses">
-                    <h2 class="mb-4 flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wider" :class="isDark ? 'text-emerald-400' : 'text-emerald-600'">
-                        <span class="text-slate-500">&gt;</span> cat certs.log
-                    </h2>
-                    <ul class="space-y-3 font-mono text-sm">
-                        <li v-for="cert in certs" :key="cert.name" class="flex items-start gap-3">
-                            <span class="mt-0.5 text-emerald-500">✓</span>
-                            <div>
-                                <div :class="isDark ? 'text-slate-200' : 'text-slate-800'">{{ cert.name }}</div>
-                                <div :class="isDark ? 'text-slate-500' : 'text-slate-400'" class="text-xs">{{ cert.org }} · {{ cert.year }}</div>
-                            </div>
-                        </li>
-                    </ul>
-                </section>
-
-                <!-- Experience -->
+                <!-- Projects -->
                 <section class="rounded-lg border p-6 md:col-span-2" :class="cardClasses">
                     <h2 class="mb-4 flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wider" :class="isDark ? 'text-emerald-400' : 'text-emerald-600'">
-                        <span class="text-slate-500">&gt;</span> history | grep work
+                        <span class="text-slate-500">&gt;</span> ls ~/projects/
                     </h2>
-                    <div class="space-y-6">
-                        <div v-for="job in experience" :key="job.title" class="relative border-l-2 pl-5" :class="isDark ? 'border-emerald-500/30' : 'border-emerald-600/30'">
-                            <div class="absolute -left-[5px] top-1 h-2 w-2 rounded-full" :class="isDark ? 'bg-emerald-500' : 'bg-emerald-600'"></div>
-                            <div class="font-mono text-sm font-bold" :class="isDark ? 'text-slate-200' : 'text-slate-800'">{{ job.title }}</div>
-                            <div class="font-mono text-xs" :class="isDark ? 'text-emerald-400/70' : 'text-emerald-600/70'">{{ job.company }} · {{ job.period }}</div>
-                            <p class="mt-2 text-sm leading-relaxed" :class="isDark ? 'text-slate-400' : 'text-slate-500'">{{ job.desc }}</p>
-                        </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <a
+                            v-for="project in projects"
+                            :key="project.name"
+                            :href="`https://github.com/RJSOG/${project.name}`"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="block rounded-md border-l-2 py-1 pl-4 transition"
+                            :class="isDark ? 'border-emerald-500/30 hover:border-emerald-400' : 'border-emerald-600/30 hover:border-emerald-600'"
+                        >
+                            <div class="font-mono text-sm font-bold" :class="isDark ? 'text-slate-200' : 'text-slate-800'">{{ project.name }}</div>
+                            <div class="font-mono text-xs" :class="isDark ? 'text-emerald-400/70' : 'text-emerald-600/70'">{{ project.lang }}</div>
+                            <p class="mt-1 text-sm leading-relaxed" :class="isDark ? 'text-slate-400' : 'text-slate-500'">{{ project.desc }}</p>
+                        </a>
                     </div>
                 </section>
 
@@ -99,21 +73,16 @@
                         <span class="text-slate-500">&gt;</span> cat .contact
                     </h2>
                     <div class="grid gap-3 font-mono text-sm sm:grid-cols-3">
-                        <a href="https://github.com/RJSOG" target="_blank" class="flex items-center gap-2 rounded-md px-3 py-2 transition" :class="isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-emerald-400' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'">
+                        <a href="https://github.com/RJSOG" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-md px-3 py-2 transition" :class="isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-emerald-400' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'">
                             <span>GitHub</span>
                             <span :class="isDark ? 'text-slate-600' : 'text-slate-300'">→</span>
                             <span :class="isDark ? 'text-emerald-400/70' : 'text-emerald-600/70'">@RJSOG</span>
                         </a>
-                        <a href="https://linkedin.com/in/" target="_blank" class="flex items-center gap-2 rounded-md px-3 py-2 transition" :class="isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-emerald-400' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'">
+                        <a href="https://www.linkedin.com/in/eliott-donatien-615295181/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-md px-3 py-2 transition" :class="isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-emerald-400' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'">
                             <span>LinkedIn</span>
                             <span :class="isDark ? 'text-slate-600' : 'text-slate-300'">→</span>
-                            <span :class="isDark ? 'text-emerald-400/70' : 'text-emerald-600/70'">Eliott</span>
+                            <span :class="isDark ? 'text-emerald-400/70' : 'text-emerald-600/70'">Eliott Donatien</span>
                         </a>
-                        <div class="flex items-center gap-2 rounded-md px-3 py-2" :class="isDark ? 'text-slate-400' : 'text-slate-500'">
-                            <span>Email</span>
-                            <span :class="isDark ? 'text-slate-600' : 'text-slate-300'">→</span>
-                            <span :class="isDark ? 'text-emerald-400/70' : 'text-emerald-600/70'">contact@secopsforge.com</span>
-                        </div>
                     </div>
                 </section>
 
@@ -133,7 +102,6 @@
 import { useTheme } from '@/composables/useTheme';
 import { computed } from 'vue';
 import AppNavbar from '@/components/AppNavbar.vue';
-import SkillBar from '@/components/SkillBar.vue';
 
 defineOptions({ layout: false });
 
@@ -145,30 +113,15 @@ const cardClasses = computed(() =>
         : 'border-slate-200 bg-white'
 );
 
-// TODO: Replace with your actual data
-const certs = [
-    { name: 'CompTIA Security+', org: 'CompTIA', year: '2025' },
-    { name: 'CEH', org: 'EC-Council', year: '2025' },
-];
-
-const experience = [
-    {
-        title: 'Security Analyst',
-        company: 'Company Name',
-        period: '2024 — Present',
-        desc: 'Blue team operations, SIEM monitoring, incident response, and vulnerability management.',
-    },
-    {
-        title: 'Junior Pentester',
-        company: 'Company Name',
-        period: '2023 — 2024',
-        desc: 'Web application security assessments, network penetration testing, and reporting.',
-    },
+const projects = [
+    { name: 'cve-scrapper', lang: 'JavaScript', desc: 'Scraper de CVE automatisé en Node.js.' },
+    { name: 'DumbCrawler', lang: 'Python', desc: "Crawler qui aspire l'intégralité d'un site web." },
+    { name: 'ExternApiTester', lang: 'JavaScript', desc: "Interpréteur et testeur automatisé d'API." },
+    { name: 'CustomHTTPServerThread', lang: 'Python', desc: 'Serveur HTTP multithread écrit from scratch.' },
 ];
 
 const tools = [
-    'Nmap', 'Burp Suite', 'Wireshark', 'Metasploit', 'Splunk',
-    'Wazuh', 'Nessus', 'Kali Linux', 'Docker', 'Git',
-    'Python', 'Bash', 'PowerShell', 'Terraform',
+    'Python', 'JavaScript / Node.js', 'PHP / Laravel', 'Vue', 'Java',
+    'Linux', 'Docker', 'Traefik', 'Git',
 ];
 </script>
