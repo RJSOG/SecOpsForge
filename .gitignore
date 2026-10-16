@@ -27,3 +27,6 @@ Thumbs.db
 
 # Articles: separate git repository, see README
 /content
+
+# Local reverse-proxy / host overrides (see DEPLOY.md)
+docker-compose.override.yml

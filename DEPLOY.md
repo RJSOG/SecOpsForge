@@ -26,7 +26,21 @@ docker compose exec app php artisan db:seed --class=AdminSeeder --force
 ## 2. HTTPS et ports 80 / 443
 
 - **Rien d'autre n'écoute sur 80/443** : mets `SERVER_NAME=ton-domaine.fr` et fais pointer le DNS (enregistrement A) vers l'IP du VPS. Caddy obtient et renouvelle le certificat Let's Encrypt tout seul.
-- **Un autre reverse proxy occupe déjà 80/443** (Nginx, Traefik, Caddy d'OpenClaw…) : mets `SERVER_NAME=:80`, `HTTP_PORT=127.0.0.1:8081` et `HTTPS_PORT=127.0.0.1:8443`, fais pointer ton proxy vers `127.0.0.1:8081`, et renseigne `TRUSTED_PROXIES` (`*` si le conteneur n'est joignable que via le proxy).
+- **Un autre reverse proxy occupe déjà 80/443** : mets `SERVER_NAME=:80` et `TRUSTED_PROXIES=*` dans `.env`, puis adapte le conteneur à ton proxy dans un `docker-compose.override.yml` (ignoré par git, chargé automatiquement par Docker Compose). Exemple avec Traefik (provider Docker) :
+
+  ```yaml
+  services:
+    app:
+      ports: !reset []
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.secopsforge.rule=Host(`ton-domaine.fr`)
+        - traefik.http.routers.secopsforge.entrypoints=websecure
+        - traefik.http.routers.secopsforge.tls.certresolver=letsencrypt
+        - traefik.http.services.secopsforge.loadbalancer.server.port=80
+  ```
+
+  Adapte `entrypoints` et `certresolver` aux noms de ta config Traefik. Avec Nginx ou un autre proxy, publie plutôt le port en local (`HTTP_PORT=127.0.0.1:8081`, `HTTPS_PORT=127.0.0.1:8443`) et fais pointer le proxy vers `127.0.0.1:8081`.
 
 Vérifie ce qui écoute déjà avec `sudo ss -tlnp | grep -E ':80|:443'`.
 
