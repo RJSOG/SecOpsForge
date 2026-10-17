@@ -244,6 +244,6 @@ const tools = [
 const contact = [
     { label: 'GitHub', value: '@RJSOG', href: 'https://github.com/RJSOG' },
     { label: 'LinkedIn', value: 'Eliott Donatien', href: 'https://www.linkedin.com/in/eliott-donatien-615295181/' },
-    { label: 'Email', value: 'contact@secopsforge.rjsog.tech', href: 'mailto:contact@secopsforge.rjsog.tech' },
+    { label: 'Email', value: 'contact@rjsog.tech', href: 'mailto:contact@rjsog.tech' },
 ];
 </script>
