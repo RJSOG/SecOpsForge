@@ -12,7 +12,7 @@ interface TermLine {
 
 const lines: TermLine[] = [
     { type: 'command', text: 'whoami', delay: 800 },
-    { type: 'output', text: 'security-analyst@secopsforge', delay: 300 },
+    { type: 'output', text: 'guest@secopsforge', delay: 300 },
     { type: 'blank', text: '', delay: 400 },
     { type: 'command', text: 'cat /etc/motd', delay: 700 },
     { type: 'output', text: '╔══════════════════════════════════════╗', delay: 50 },
