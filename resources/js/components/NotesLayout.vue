@@ -4,7 +4,7 @@ import NotesSidebar from '@/components/NotesSidebar.vue';
 import { useHighlight } from '@/composables/useHighlight';
 import { useTheme } from '@/composables/useTheme';
 import { Link, usePage } from '@inertiajs/vue3';
-import { nextTick, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 
 interface NoteNode {
     name: string;
@@ -25,6 +25,15 @@ const { isDark } = useTheme();
 const page = usePage();
 const isAdmin = !!(page.props.auth?.user as { is_admin?: boolean } | null)?.is_admin;
 const { highlightAll } = useHighlight();
+const sidebarOpen = ref(false);
+
+// Close the mobile drawer once a note is opened.
+watch(
+    () => page.url,
+    () => {
+        sidebarOpen.value = false;
+    },
+);
 
 watch(
     () => props.note?.path,
@@ -57,17 +66,40 @@ const accent = accentClasses[props.accentColor];
         <AppNavbar />
 
         <div class="flex pt-14">
-            <NotesSidebar :tree="tree" :team="team" :accentColor="accentColor" />
+            <NotesSidebar :tree="tree" :team="team" :accentColor="accentColor" :open="sidebarOpen" />
 
-            <div class="flex-1 overflow-y-auto p-8">
+            <!-- Mobile drawer backdrop -->
+            <div
+                v-if="sidebarOpen"
+                class="fixed inset-0 top-14 z-30 bg-black/40 md:hidden"
+                aria-hidden="true"
+                @click="sidebarOpen = false"
+            />
+
+            <div class="min-w-0 flex-1 px-4 py-6 sm:p-8">
+                <!-- Mobile: open the notes drawer -->
+                <button
+                    type="button"
+                    class="mb-6 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium md:hidden"
+                    :class="isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'"
+                    aria-controls="notes-sidebar"
+                    :aria-expanded="sidebarOpen"
+                    @click="sidebarOpen = true"
+                >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                    Notes
+                </button>
+
                 <!-- Note content -->
                 <div v-if="note" class="mx-auto max-w-4xl">
                     <div class="mb-8">
                         <span :class="['inline-block rounded-full px-3 py-1 text-xs font-medium', accent.badge]">
                             {{ teamLabel }}
                         </span>
-                        <div class="mt-3 flex items-center gap-3">
-                            <h1 class="text-2xl font-bold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
+                        <div class="mt-3 flex flex-wrap items-center gap-3">
+                            <h1 class="break-words text-2xl font-bold tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
                                 {{ note.title }}
                             </h1>
                             <Link
@@ -84,22 +116,22 @@ const accent = accentClasses[props.accentColor];
                     </div>
                     <article
                         v-if="isDark"
-                        class="prose prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-slate-100 prose-p:text-slate-300 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-200 prose-code:rounded prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:text-slate-300 prose-pre:border prose-pre:border-slate-800 prose-pre:bg-slate-950 prose-th:text-slate-300 prose-td:text-slate-400"
+                        class="prose prose-invert max-w-none break-words [&_table]:block [&_table]:overflow-x-auto prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-slate-100 prose-p:text-slate-300 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-200 prose-code:rounded prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:text-slate-300 prose-pre:border prose-pre:border-slate-800 prose-pre:bg-slate-950 prose-th:text-slate-300 prose-td:text-slate-400"
                         v-html="note.content"
                     />
                     <article
                         v-else
-                        class="prose max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-800 prose-code:rounded prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:text-slate-700 prose-pre:border prose-pre:border-slate-200 prose-pre:bg-slate-50 prose-th:text-slate-700 prose-td:text-slate-600"
+                        class="prose max-w-none break-words [&_table]:block [&_table]:overflow-x-auto prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-slate-800 prose-code:rounded prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:text-slate-700 prose-pre:border prose-pre:border-slate-200 prose-pre:bg-slate-50 prose-th:text-slate-700 prose-td:text-slate-600"
                         v-html="note.content"
                     />
                 </div>
 
                 <!-- Empty state -->
-                <div v-else class="flex h-[70vh] items-center justify-center">
+                <div v-else class="flex h-[60vh] items-center justify-center md:h-[70vh]">
                     <div class="text-center">
                         <h2 :class="['mb-2 text-2xl font-bold tracking-tight', accent.heading]">{{ teamLabel }}</h2>
                         <p :class="isDark ? 'text-slate-500' : 'text-slate-400'">
-                            Sélectionnez une note dans la sidebar.
+                            Sélectionnez une note.
                         </p>
                     </div>
                 </div>

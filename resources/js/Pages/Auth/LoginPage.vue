@@ -1,4 +1,5 @@
 <template>
+    <SeoHead />
     <div class="flex min-h-screen items-center justify-center transition-colors duration-200" :class="isDark ? 'bg-slate-900' : 'bg-slate-50'">
         <div class="w-full max-w-sm">
             <!-- Terminal style card -->
@@ -80,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+import SeoHead from '@/components/SeoHead.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';

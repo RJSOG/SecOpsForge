@@ -14,6 +14,8 @@ defineProps<{
     tree: NoteNode[];
     team: string;
     accentColor: 'red' | 'blue' | 'amber';
+    // Mobile only: the sidebar is an off-canvas drawer below md.
+    open?: boolean;
 }>();
 
 const { isDark } = useTheme();
@@ -23,8 +25,9 @@ const isAuthenticated = !!page.props.auth?.user;
 
 <template>
     <aside
-        class="sticky top-14 h-[calc(100vh-3.5rem)] w-64 flex-shrink-0 overflow-y-auto border-r transition-colors duration-200"
-        :class="isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50'"
+        id="notes-sidebar"
+        class="fixed bottom-0 left-0 top-14 z-40 w-72 max-w-[85vw] flex-shrink-0 overflow-y-auto border-r transition-transform duration-200 md:sticky md:z-auto md:h-[calc(100vh-3.5rem)] md:w-64 md:translate-x-0"
+        :class="[open ? 'translate-x-0' : '-translate-x-full', isDark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-slate-50']"
     >
         <div class="p-4">
             <div class="mb-4 flex items-center justify-between">

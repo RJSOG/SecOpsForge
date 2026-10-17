@@ -2,7 +2,7 @@
     <div class="min-h-screen transition-colors duration-200" :class="isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'">
         <AppNavbar />
 
-        <div class="mx-auto max-w-6xl px-6 pt-20">
+        <div class="mx-auto max-w-6xl px-4 pb-8 pt-20 sm:px-6">
             <!-- Header -->
             <div class="mb-6 flex items-center justify-between">
                 <h1 class="font-mono text-lg font-bold" :class="isDark ? 'text-emerald-400' : 'text-emerald-600'">
@@ -33,7 +33,7 @@
             </div>
 
             <!-- Meta -->
-            <div class="mb-4 flex gap-4">
+            <div class="mb-4 flex flex-col gap-4 sm:flex-row">
                 <div>
                     <label class="mb-1 block text-xs font-medium" :class="isDark ? 'text-slate-500' : 'text-slate-400'">Section</label>
                     <select
@@ -63,7 +63,7 @@
             </div>
 
             <!-- Editor + Preview -->
-            <div class="grid h-[calc(100vh-14rem)] gap-4" :class="showPreview ? 'grid-cols-2' : 'grid-cols-1'">
+            <div class="grid gap-4" :class="showPreview ? 'grid-cols-1 md:h-[calc(100vh-14rem)] md:grid-cols-2' : 'h-[calc(100vh-14rem)] grid-cols-1'">
                 <!-- Textarea -->
                 <div class="flex flex-col">
                     <div class="mb-2 flex items-center justify-between">
@@ -78,7 +78,7 @@
                     </div>
                     <textarea
                         v-model="content"
-                        class="flex-1 resize-none rounded-lg border p-4 font-mono text-sm leading-relaxed focus:outline-none focus:ring-1"
+                        class="min-h-[50vh] flex-1 resize-none rounded-lg border p-4 font-mono text-sm leading-relaxed focus:outline-none focus:ring-1 md:min-h-0"
                         :class="isDark
                             ? 'border-slate-700 bg-slate-950 text-slate-300 focus:ring-emerald-500/30'
                             : 'border-slate-200 bg-slate-50 text-slate-800 focus:ring-emerald-500/30'"
@@ -91,7 +91,7 @@
                 <div v-if="showPreview" class="flex flex-col">
                     <span class="mb-2 text-xs font-medium" :class="isDark ? 'text-slate-500' : 'text-slate-400'">Preview</span>
                     <div
-                        class="flex-1 overflow-y-auto rounded-lg border p-6"
+                        class="min-h-[50vh] flex-1 overflow-y-auto rounded-lg border p-4 sm:p-6 md:min-h-0"
                         :class="isDark ? 'border-slate-700 bg-slate-950' : 'border-slate-200 bg-white'"
                     >
                         <article
@@ -109,7 +109,7 @@
             </div>
 
             <!-- Keyboard shortcuts -->
-            <div class="mt-3 text-xs" :class="isDark ? 'text-slate-700' : 'text-slate-300'">
+            <div class="mt-3 hidden text-xs md:block" :class="isDark ? 'text-slate-700' : 'text-slate-300'">
                 <kbd class="rounded border px-1" :class="isDark ? 'border-slate-700' : 'border-slate-300'">Ctrl+S</kbd> save
                 · <kbd class="rounded border px-1" :class="isDark ? 'border-slate-700' : 'border-slate-300'">Ctrl+P</kbd> toggle preview
             </div>

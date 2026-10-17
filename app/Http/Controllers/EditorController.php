@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enum\TeamEnum;
+use App\Support\Seo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,13 +45,16 @@ class EditorController extends Controller
             }
         }
 
+        $seo = Seo::make(title: 'Editor', index: false);
+
         return Inertia::render('EditorPage', [
             'team' => $team,
             'path' => $path,
             'content' => $content,
             'isNew' => $isNew,
             'teams' => TeamEnum::getAllValues(),
-        ]);
+            'seo' => $seo,
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**
