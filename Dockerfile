@@ -21,6 +21,9 @@ RUN npm run build
 FROM dunglas/frankenphp:php8.4
 
 ARG USER=secopsforge
+# Fixed IDs so the host can give the articles folder to this user (DEPLOY.md).
+ARG UID=1000
+ARG GID=1000
 
 # pdo_sqlite and opcache ship with the base image.
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
@@ -36,7 +39,8 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint \
     && rm -rf bootstrap/cache/*.php tests node_modules \
     && php artisan package:discover --ansi \
-    && useradd --system --create-home ${USER} \
+    && groupadd --gid ${GID} ${USER} \
+    && useradd --uid ${UID} --gid ${GID} --create-home ${USER} \
     && setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp \
     && mkdir -p storage database/data content \
     && chown -R ${USER}:${USER} /app/storage /app/bootstrap/cache /app/database/data /app/content /config/caddy /data/caddy
