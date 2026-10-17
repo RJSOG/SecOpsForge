@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enum\TeamEnum;
+use App\Support\Seo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -44,13 +46,16 @@ class EditorController extends Controller
             }
         }
 
+        $seo = Seo::make(title: 'Editor', index: false);
+
         return Inertia::render('EditorPage', [
             'team' => $team,
             'path' => $path,
             'content' => $content,
             'isNew' => $isNew,
             'teams' => TeamEnum::getAllValues(),
-        ]);
+            'seo' => $seo,
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**
@@ -81,11 +86,17 @@ class EditorController extends Controller
         $filePath = $basePath . '/' . $path;
 
         $dir = dirname($filePath);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
+        $written = (is_dir($dir) || @mkdir($dir, 0755, true)) && @file_put_contents($filePath, $content) !== false;
 
-        file_put_contents($filePath, $content);
+        if (!$written) {
+            // Usually the mounted notes folder is owned by another user than
+            // the one PHP runs as (see DEPLOY.md, "Droits sur les articles").
+            Log::error('Editor: cannot write note', ['file' => $filePath, 'error' => error_get_last()['message'] ?? null]);
+
+            return response()->json([
+                'error' => "Impossible d'écrire la note : le dossier des articles n'est pas accessible en écriture par le serveur.",
+            ], 500);
+        }
 
         $urlPath = preg_replace('/\.md$/', '', $path);
 

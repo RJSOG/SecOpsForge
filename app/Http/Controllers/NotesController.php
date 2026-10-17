@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enum\TeamEnum;
+use App\Support\Seo;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -17,6 +18,46 @@ use League\CommonMark\MarkdownConverter;
 
 class NotesController extends Controller
 {
+    /**
+     * Section labels and descriptions used for page titles and meta tags.
+     */
+    public const SECTIONS = [
+        'redteam' => [
+            'label' => 'Red Team',
+            'description' => 'Offensive security notes: Active Directory attacks, web exploitation, privilege escalation, pivoting and AV evasion.',
+        ],
+        'blueteam' => [
+            'label' => 'Blue Team',
+            'description' => 'Defensive security notes: detection engineering, EDR and SIEM investigations, incident response and forensics.',
+        ],
+        'automation' => [
+            'label' => 'Automation',
+            'description' => 'Security automation notes: Python and Bash tooling, log parsing, SOAR and scripting for SOC and pentest workflows.',
+        ],
+    ];
+
+    /**
+     * Every note of every section, newest first (used by the sitemap).
+     *
+     * @return array
+     */
+    public static function getAllNotes(): array
+    {
+        $files = [];
+
+        foreach (TeamEnum::getAllValues() as $team) {
+            $basePath = Storage::disk('notes')->path($team);
+
+            if (is_dir($basePath)) {
+                self::collectFiles($basePath, $basePath, $team, $files);
+            }
+        }
+
+        usort($files, fn($a, $b) => $b['mtime'] - $a['mtime']);
+
+        return $files;
+    }
+
     /**
      * @param int $perSection
      * @return array
@@ -136,11 +177,31 @@ class NotesController extends Controller
             $note = $this->renderMarkdown($storagePath, $path);
         }
 
+        $section = self::SECTIONS[$team];
+
+        $seo = $note
+            ? Seo::make(
+                title: "{$note['title']} · {$section['label']}",
+                description: Seo::excerpt($note['content']) ?? $section['description'],
+                type: 'article',
+                jsonLd: [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'TechArticle',
+                    'headline' => $note['title'],
+                    'articleSection' => $section['label'],
+                    'dateModified' => $note['modified'],
+                    'url' => Seo::url("{$team}/{$note['path']}"),
+                    'author' => ['@type' => 'Person', 'name' => Seo::AUTHOR, 'url' => Seo::url('whoami')],
+                ],
+            )
+            : Seo::make(title: $section['label'], description: $section['description']);
+
         return Inertia::render($page, [
             'tree' => $tree,
             'note' => $note,
             'team' => $team,
-        ]);
+            'seo' => $seo,
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**
@@ -177,6 +238,7 @@ class NotesController extends Controller
             'title' => Str::headline(pathinfo($filePath, PATHINFO_FILENAME)),
             'content' => $content,
             'path' => $path,
+            'modified' => date('c', filemtime($filePath)),
         ];
     }
 

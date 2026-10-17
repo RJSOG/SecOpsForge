@@ -95,7 +95,7 @@ onMounted(() => {
         </div>
 
         <!-- Terminal body -->
-        <div class="min-h-[320px] p-5 font-mono text-sm leading-relaxed">
+        <div class="min-h-[280px] overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:min-h-[320px] sm:p-5 sm:text-sm">
             <div v-for="(line, i) in visibleLines" :key="i" class="whitespace-pre">
                 <template v-if="line.type === 'command'">
                     <span class="text-emerald-500">❯</span>

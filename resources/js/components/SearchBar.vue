@@ -4,6 +4,9 @@ import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
+// block: full-width input and dropdown (mobile menu).
+const props = defineProps<{ block?: boolean }>();
+
 const { isDark } = useTheme();
 
 const query = ref('');
@@ -77,11 +80,11 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown));
                 ref="inputRef"
                 v-model="query"
                 type="text"
-                placeholder="Search... ⌘K"
-                class="w-44 rounded-md border py-1.5 pl-8 pr-3 text-xs font-medium transition-all focus:w-64 focus:outline-none focus:ring-1"
-                :class="isDark
+                :placeholder="props.block ? 'Search...' : 'Search... ⌘K'"
+                class="rounded-md border py-1.5 pl-8 pr-3 font-medium transition-all focus:outline-none focus:ring-1"
+                :class="[props.block ? 'w-full text-sm' : 'w-44 text-xs focus:w-64', isDark
                     ? 'border-slate-700 bg-slate-800/50 text-slate-300 placeholder-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/30'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500/30'"
+                    : 'border-slate-200 bg-slate-50 text-slate-700 placeholder-slate-400 focus:border-emerald-500 focus:ring-emerald-500/30']"
                 @focus="query.length >= 2 && results.length > 0 && (isOpen = true)"
                 @blur="close"
             />
@@ -90,8 +93,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown));
         <!-- Dropdown -->
         <div
             v-if="isOpen"
-            class="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-lg border shadow-xl"
-            :class="isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white'"
+            class="absolute right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border shadow-xl"
+            :class="[props.block ? 'left-0' : 'w-96', isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-white']"
         >
             <div class="max-h-80 overflow-y-auto">
                 <Link

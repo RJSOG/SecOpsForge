@@ -91,6 +91,17 @@ class EditorTest extends TestCase
         $this->assertDirectoryDoesNotExist("{$this->notesPath}/automation/scripts");
     }
 
+    public function test_save_reports_an_unwritable_notes_folder(): void
+    {
+        // A file where the folder should be: mkdir fails even when running as root.
+        $this->makeNote('redteam', 'placeholder', 'x');
+        file_put_contents("{$this->notesPath}/redteam/blocked", 'not a folder');
+
+        $this->actingAs($this->admin())->postJson('/api/editor/save', [
+            'team' => 'redteam', 'path' => 'blocked/New note', 'content' => '# New',
+        ])->assertStatus(500)->assertJsonPath('error', fn (string $error) => str_contains($error, 'écriture'));
+    }
+
     public function test_save_rejects_path_traversal_and_unknown_teams(): void
     {
         $admin = $this->admin();

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex min-h-[calc(100vh-3.5rem)] flex-col items-center px-6 pt-16">
+    <div class="flex min-h-[calc(100vh-3.5rem)] flex-col items-center px-4 pt-10 sm:px-6 sm:pt-16">
 
         <!-- Logo + Title -->
         <div class="mb-10 text-center">
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Action buttons -->
-        <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <div class="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
             <Link
                 href="/redteam"
                 class="group flex items-center gap-2 rounded-md px-5 py-2.5 text-sm font-medium transition"
