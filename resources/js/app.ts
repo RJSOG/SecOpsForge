@@ -5,7 +5,7 @@ import { createApp, h, type DefineComponent } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import '../css/app.css';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'SecOpsForge';
 const initializeFrontAuth = async () => {
     axios.defaults.withCredentials = true;
     axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
