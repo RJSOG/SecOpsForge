@@ -102,6 +102,37 @@ class EditorTest extends TestCase
         ])->assertStatus(500)->assertJsonPath('error', fn (string $error) => str_contains($error, 'écriture'));
     }
 
+    public function test_uploaded_image_is_stored_with_the_articles_and_served(): void
+    {
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+        $image = \Illuminate\Http\UploadedFile::fake()->createWithContent('Screenshot 1.png', $png);
+
+        $response = $this->actingAs($this->admin())->post('/api/editor/upload-image', [
+            'team' => 'redteam', 'image' => $image,
+        ], ['Accept' => 'application/json'])->assertOk();
+
+        $url = $response->json('url');
+        $this->assertMatchesRegularExpression('#^/media/redteam/screenshot-1-[A-Za-z0-9]{8}\.png$#', $url);
+        $this->assertSame('![screenshot-1]('.$url.')', $response->json('markdown'));
+        $this->assertFileExists("{$this->notesPath}/redteam/images/".basename($url));
+
+        // Public, like the articles that embed it.
+        auth()->logout();
+        $this->get($url)->assertOk()
+            ->assertHeader('Content-Type', 'image/png')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+    }
+
+    public function test_media_route_only_serves_images_of_known_teams(): void
+    {
+        $this->makeNote('redteam', 'images/secret', 'not an image');
+
+        $this->get('/media/redteam/secret.md')->assertNotFound();
+        $this->get('/media/redteam/missing.png')->assertNotFound();
+        $this->get('/media/unknown/x.png')->assertNotFound();
+        $this->get('/media/redteam/..%2Fsecret.png')->assertNotFound();
+    }
+
     public function test_save_rejects_path_traversal_and_unknown_teams(): void
     {
         $admin = $this->admin();

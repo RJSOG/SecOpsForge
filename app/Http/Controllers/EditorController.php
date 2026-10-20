@@ -109,14 +109,26 @@ class EditorController extends Controller
 
         // Extension guessed from the file content (constrained by the mimes
         // rule), never the client-supplied one: a PNG named x.html would
-        // otherwise be served as HTML from /storage.
+        // otherwise be served as HTML.
         $extension = strtolower($file->extension() ?: 'png');
         $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $slug = Str::slug($name) ?: 'image';
         $filename = $slug.'-'.Str::random(8).'.'.$extension;
 
-        $path = $file->storeAs('articles/'.$team, $filename, 'public');
-        $url = '/storage/'.$path;
+        // Images live next to the articles (content/{team}/images) so they are
+        // versioned with them, and are served by MediaController.
+        $dir = Storage::disk('notes')->path($team.'/images');
+        $written = (is_dir($dir) || @mkdir($dir, 0755, true)) && @copy($file->getRealPath(), $dir.'/'.$filename);
+
+        if (! $written) {
+            Log::error('Editor: cannot write image', ['dir' => $dir, 'error' => error_get_last()['message'] ?? null]);
+
+            return response()->json([
+                'error' => "Impossible d'enregistrer l'image : le dossier des articles n'est pas accessible en écriture par le serveur.",
+            ], 500);
+        }
+
+        $url = '/media/'.$team.'/'.$filename;
 
         return response()->json([
             'success' => true,

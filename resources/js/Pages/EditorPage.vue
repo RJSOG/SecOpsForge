@@ -263,7 +263,7 @@ async function uploadImage(file: File) {
         const prefix = content.value && !content.value.endsWith('\n') ? '\n' : '';
         insertAtCursor(prefix + data.markdown + '\n');
     } catch (err: any) {
-        alert(err.response?.data?.errors?.image?.[0] || 'Failed to upload image');
+        alert(err.response?.data?.errors?.image?.[0] || err.response?.data?.error || 'Failed to upload image');
     }
     uploading.value = false;
 }
