@@ -19,19 +19,14 @@ use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\TaskList\TaskListExtension;
 use League\CommonMark\MarkdownConverter;
 
-
 class EditorController extends Controller
 {
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function edit(Request $request): Response
     {
         $team = $request->input('team', TeamEnum::RED_TEAM->value);
         $path = $request->input('path', '');
 
-        if (!is_string($team) || !TeamEnum::has($team)) {
+        if (! is_string($team) || ! TeamEnum::has($team)) {
             abort(404);
         }
 
@@ -58,10 +53,6 @@ class EditorController extends Controller
         ])->withViewData(['seo' => $seo]);
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function save(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -74,7 +65,7 @@ class EditorController extends Controller
         $path = $validated['path'];
         $content = $validated['content'];
 
-        if (!Str::endsWith($path, '.md')) {
+        if (! Str::endsWith($path, '.md')) {
             $path .= '.md';
         }
 
@@ -83,12 +74,12 @@ class EditorController extends Controller
         }
 
         $basePath = Storage::disk('notes')->path($team);
-        $filePath = $basePath . '/' . $path;
+        $filePath = $basePath.'/'.$path;
 
         $dir = dirname($filePath);
         $written = (is_dir($dir) || @mkdir($dir, 0755, true)) && @file_put_contents($filePath, $content) !== false;
 
-        if (!$written) {
+        if (! $written) {
             // Usually the mounted notes folder is owned by another user than
             // the one PHP runs as (see DEPLOY.md, "Droits sur les articles").
             Log::error('Editor: cannot write note', ['file' => $filePath, 'error' => error_get_last()['message'] ?? null]);
@@ -102,14 +93,39 @@ class EditorController extends Controller
 
         return response()->json([
             'success' => true,
-            'url' => '/' . $team . '/' . $urlPath,
+            'url' => '/'.$team.'/'.$urlPath,
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'team' => ['required', Rule::enum(TeamEnum::class)],
+            'image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
+        ]);
+
+        $team = $validated['team'];
+        $file = $request->file('image');
+
+        // Extension guessed from the file content (constrained by the mimes
+        // rule), never the client-supplied one: a PNG named x.html would
+        // otherwise be served as HTML from /storage.
+        $extension = strtolower($file->extension() ?: 'png');
+        $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $slug = Str::slug($name) ?: 'image';
+        $filename = $slug.'-'.Str::random(8).'.'.$extension;
+
+        $path = $file->storeAs('articles/'.$team, $filename, 'public');
+        $url = '/storage/'.$path;
+
+        return response()->json([
+            'success' => true,
+            'url' => $url,
+            'alt' => $slug,
+            'markdown' => '!['.$slug.']('.$url.')',
+        ]);
+    }
+
     public function delete(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -119,7 +135,7 @@ class EditorController extends Controller
 
         $filePath = $this->resolveFilePath($validated['team'], $validated['path']);
 
-        if (!$filePath || !file_exists($filePath)) {
+        if (! $filePath || ! file_exists($filePath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
 
@@ -136,8 +152,6 @@ class EditorController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @return JsonResponse
      * @throws CommonMarkException
      */
     public function preview(Request $request): JsonResponse
@@ -148,9 +162,9 @@ class EditorController extends Controller
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
         ]);
-        $environment->addExtension(new CommonMarkCoreExtension());
-        $environment->addExtension(new TableExtension());
-        $environment->addExtension(new TaskListExtension());
+        $environment->addExtension(new CommonMarkCoreExtension);
+        $environment->addExtension(new TableExtension);
+        $environment->addExtension(new TaskListExtension);
 
         $converter = new MarkdownConverter($environment);
         $html = $converter->convert($content)->getContent();
@@ -158,11 +172,6 @@ class EditorController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    /**
-     * @param string $team
-     * @param string $path
-     * @return string|null
-     */
     private function resolveFilePath(string $team, string $path): ?string
     {
         if (Str::contains($path, ['..', "\0"])) {
@@ -171,20 +180,19 @@ class EditorController extends Controller
 
         $basePath = Storage::disk('notes')->path($team);
 
-        $filePath = $basePath . '/' . $path . '.md';
-        if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) return $filePath;
+        $filePath = $basePath.'/'.$path.'.md';
+        if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) {
+            return $filePath;
+        }
 
-        $filePath = $basePath . '/' . $path;
-        if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) return $filePath;
+        $filePath = $basePath.'/'.$path;
+        if ($this->isWithinBasePath($filePath, $basePath) && file_exists($filePath)) {
+            return $filePath;
+        }
 
         return null;
     }
 
-    /**
-     * @param string $filePath
-     * @param string $basePath
-     * @return bool
-     */
     private function isWithinBasePath(string $filePath, string $basePath): bool
     {
         $realBase = realpath($basePath);
@@ -192,12 +200,13 @@ class EditorController extends Controller
 
         if ($realFile === false) {
             $normalized = str_replace('\\', '/', $filePath);
+
             return $realBase !== false && str_starts_with(
                 $normalized,
-                str_replace('\\', '/', $realBase) . '/'
+                str_replace('\\', '/', $realBase).'/'
             );
         }
 
-        return $realBase !== false && str_starts_with($realFile, $realBase . DIRECTORY_SEPARATOR);
+        return $realBase !== false && str_starts_with($realFile, $realBase.DIRECTORY_SEPARATOR);
     }
 }

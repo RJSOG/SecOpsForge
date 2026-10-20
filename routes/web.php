@@ -40,6 +40,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/api/editor/save', [EditorController::class, 'save'])->name('editor.save');
     Route::post('/api/editor/delete', [EditorController::class, 'delete'])->name('editor.delete');
     Route::post('/api/editor/preview', [EditorController::class, 'preview'])->name('editor.preview');
+    Route::post('/api/editor/upload-image', [EditorController::class, 'uploadImage'])->name('editor.upload-image');
 });
 
 // Notes sections
@@ -57,7 +58,7 @@ Route::get('/automation/{path?}', [NotesController::class, 'automation'])
 
 Route::get('/whoami', function () {
     $seo = Seo::make(
-        title: 'Whoami · ' . Seo::AUTHOR,
+        title: 'Whoami · '.Seo::AUTHOR,
         description: 'Eliott Donatien (RJSOG), cybersecurity engineer at Orange Cyberdefense in Singapore: SOC, EDR/XDR, incident response and offensive security. OSCP certified.',
         type: 'profile',
         jsonLd: [
@@ -87,4 +88,4 @@ Route::get('/login', function () {
     ->middleware('guest')
     ->name('login');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

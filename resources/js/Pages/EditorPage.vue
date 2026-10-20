@@ -67,7 +67,24 @@
                 <!-- Textarea -->
                 <div class="flex flex-col">
                     <div class="mb-2 flex items-center justify-between">
-                        <span class="text-xs font-medium" :class="isDark ? 'text-slate-500' : 'text-slate-400'">Markdown</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-medium" :class="isDark ? 'text-slate-500' : 'text-slate-400'">Markdown</span>
+                            <button
+                                @click="onPickImage"
+                                :disabled="uploading"
+                                class="text-xs transition"
+                                :class="isDark ? 'text-slate-500 hover:text-emerald-400' : 'text-slate-400 hover:text-emerald-600'"
+                            >
+                                {{ uploading ? 'Uploading...' : '+ Image' }}
+                            </button>
+                            <input
+                                ref="fileInput"
+                                type="file"
+                                accept="image/png,image/jpeg,image/gif,image/webp"
+                                class="hidden"
+                                @change="onFileChange"
+                            />
+                        </div>
                         <button
                             @click="showPreview = !showPreview"
                             class="text-xs transition"
@@ -77,6 +94,7 @@
                         </button>
                     </div>
                     <textarea
+                        ref="textareaRef"
                         v-model="content"
                         class="min-h-[50vh] flex-1 resize-none rounded-lg border p-4 font-mono text-sm leading-relaxed focus:outline-none focus:ring-1 md:min-h-0"
                         :class="isDark
@@ -84,6 +102,9 @@
                             : 'border-slate-200 bg-slate-50 text-slate-800 focus:ring-emerald-500/30'"
                         spellcheck="false"
                         @input="onInput"
+                        @paste="onPaste"
+                        @drop.prevent="onDrop"
+                        @dragover.prevent
                     ></textarea>
                 </div>
 
@@ -150,6 +171,9 @@ const content = ref(props.content);
 const previewHtml = ref('');
 const showPreview = ref(true);
 const saving = ref(false);
+const uploading = ref(false);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 let previewTimer: ReturnType<typeof setTimeout>;
 
@@ -205,6 +229,74 @@ async function deleteNote() {
         router.visit('/' + selectedTeam.value);
     } catch (err: any) {
         alert(err.response?.data?.error || 'Failed to delete');
+    }
+}
+
+function insertAtCursor(text: string) {
+    const el = textareaRef.value;
+    if (!el) {
+        content.value += text;
+        onInput();
+        return;
+    }
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    content.value = content.value.slice(0, start) + text + content.value.slice(end);
+    nextTick(() => {
+        el.focus();
+        el.selectionStart = el.selectionEnd = start + text.length;
+    });
+    onInput();
+}
+
+async function uploadImage(file: File) {
+    if (!file.type.startsWith('image/')) return;
+
+    uploading.value = true;
+    try {
+        const form = new FormData();
+        form.append('team', selectedTeam.value);
+        form.append('image', file);
+        const { data } = await axios.post('/api/editor/upload-image', form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const prefix = content.value && !content.value.endsWith('\n') ? '\n' : '';
+        insertAtCursor(prefix + data.markdown + '\n');
+    } catch (err: any) {
+        alert(err.response?.data?.errors?.image?.[0] || 'Failed to upload image');
+    }
+    uploading.value = false;
+}
+
+function onPickImage() {
+    fileInput.value?.click();
+}
+
+function onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) uploadImage(file);
+    input.value = '';
+}
+
+function onPaste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+        if (!items[i].type.startsWith('image/')) continue;
+        const file = items[i].getAsFile();
+        if (file) {
+            event.preventDefault();
+            uploadImage(file);
+        }
+    }
+}
+
+function onDrop(event: DragEvent) {
+    const files = event.dataTransfer?.files;
+    if (!files) return;
+    for (let i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('image/')) uploadImage(files[i]);
     }
 }
 
