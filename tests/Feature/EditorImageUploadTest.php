@@ -42,11 +42,10 @@ class EditorImageUploadTest extends TestCase
         ]);
 
         $response->assertOk()->assertJson(['success' => true, 'alt' => 'my-screenshot']);
-        $this->assertStringContainsString('/storage/articles/redteam/', $response->json('markdown'));
+        $this->assertStringContainsString('/media/redteam/', $response->json('markdown'));
         $this->assertStringStartsWith('![my-screenshot](', $response->json('markdown'));
 
-        $path = substr($response->json('url'), strlen('/storage/'));
-        Storage::disk('public')->assertExists($path);
+        $this->assertFileExists("{$this->notesPath}/redteam/images/".basename($response->json('url')));
     }
 
     public function test_non_image_file_is_rejected(): void
