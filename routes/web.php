@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EditorController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NotesController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeoController;
@@ -42,6 +43,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/api/editor/preview', [EditorController::class, 'preview'])->name('editor.preview');
     Route::post('/api/editor/upload-image', [EditorController::class, 'uploadImage'])->name('editor.upload-image');
 });
+
+// Images embedded in the articles (content/{team}/images)
+Route::get('/media/{team}/{file}', [MediaController::class, 'show'])
+    ->where('file', '[A-Za-z0-9][A-Za-z0-9._-]*')
+    ->name('media');
 
 // Notes sections
 Route::get('/redteam/{path?}', [NotesController::class, 'redteam'])
